@@ -40,9 +40,6 @@ ALL_MODES = (MODE_0, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5)
 
 class GPIOBase(object):
 
-
-    boardtype=""
-
     def __init__(self, debug=False):
         """Constructor
 
@@ -55,8 +52,8 @@ class GPIOBase(object):
         self.gpio_handlers = {}
         self.exported_pwm = []
         self.enabled_pwm = {}
-        self.pinmux = 214
-        if self.boardtype == "Edison":
+
+        if self.pinmux > 0:
             self._export_pin(self.pinmux)
             self._set_direction(self.pinmux, self.HIGH)
 
@@ -85,7 +82,7 @@ class GPIOBase(object):
         if pin not in self.GPIO_MAPPING:
             return False
 
-        if self.boardtype == "Edison":
+        if self.pinmux > 0:
             self._set_direction(self.pinmux, self.LOW)
 
         mux = self._select_muxing(mode, pin)
@@ -128,7 +125,7 @@ class GPIOBase(object):
         elif mode == PWM:
             self._init_pwm(pin)
 
-        if self.boardtype == "Edison":
+        if self.pinmux > 0:
             self._set_direction(self.pinmux, self.HIGH)
 
         return True
@@ -311,12 +308,12 @@ class GPIOBase(object):
         self._exec_cmd(self._unexport_pin.__name__, cmd)
 
     def _muxmode(self, linux_pin, mode):                                       
-        if self.boardtype == "Edison":
+        if self.pinmux > 0:
             cmd = 'echo %s > /sys/kernel/debug/gpio_debug/gpio%d/current_pinmux' % (mode, linux_pin)
             self._exec_cmd(self._muxmode.__name__, cmd)   
 
     def _set_drive(self, linux_pin, drive):
-        if self.boardtype != "Edison":
+        if self.pinmux == 0:
             cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
             self._exec_cmd(self._set_drive.__name__, cmd)
 
@@ -456,7 +453,7 @@ class GPIOGalileo(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
-        self.boardtype="Galileo"
+        self.pinmux = 0
         super(GPIOGalileo, self).__init__(**kwargs)
         self.pwm_periods = {}
         for pwm in self.PWM_MAPPING.keys():
@@ -647,7 +644,7 @@ class GPIOGalileoGen2(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
-        self.boardtype="GalileoGen2"
+        self.pinmux = 0
         super(GPIOGalileoGen2, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
@@ -841,7 +838,8 @@ class GPIOEdison(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
-        self.boardtype="Edison"
+        
+        self.pinmux=214
         super(GPIOEdison, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
