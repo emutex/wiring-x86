@@ -54,7 +54,7 @@ setup(
     py_modules=['arduinox86'],
     license='BSD',
     description='A Python module to use basic GPIO on Intel® Arduino capable boards.',
-#     long_description='Description... WIP',
+    long_description=open('README.md').read(),
     classifiers=[
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
