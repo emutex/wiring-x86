@@ -108,24 +108,24 @@ class GPIOGalileoGen2(object):
     GPIO_MUX_INPUT = {
         0: ( (32, HIGH), (33, NONE) ),
         1: ( (45, LOW), (28, HIGH), (29, NONE) ),
-        2: ( (77, LOW), (34, HIGH), (35, NONE) ),
-        3: ( (64, LOW), (76, LOW), (16, HIGH), (17, NONE) ),
+        2: ( (77, LOW), (34, HIGH), (35, NONE) ), # FIXME: input always connected
+        3: ( (64, LOW), (76, LOW), (16, HIGH), (17, NONE) ),  # FIXME: input always connected
         4: ( (36, HIGH), (37, NONE) ),
         5: ( (66, LOW), (18, HIGH), (19, NONE) ),
         6: ( (68, LOW), (20, HIGH), (21, NONE) ),
-        7: ( (38, HIGH), (39, NONE) ), #TODO update for Fab-G
-        8: ( (40, HIGH), (41, NONE) ), #TODO update for Fab-G
+        7: ( (38, HIGH), (39, NONE) ), #TODO update for Fab-G # FIXME: input always connected
+        8: ( (40, HIGH), (41, NONE) ), #TODO update for Fab-G # FIXME: input always connected
         9: ( (70, LOW), (22, HIGH), (23, NONE) ),
        10: ( (74, LOW), (26, HIGH), (27, NONE) ),
        11: ( (44, LOW), (72, LOW), (24, HIGH), (25, NONE) ),
        12: ( (42, HIGH), (43, NONE) ),
        13: ( (46, LOW), (30, HIGH), (31, NONE) ),
-       14: ( (49, NONE) ), #FIXME
-       15: ( (51, NONE) ), #FIXME
-       16: ( (53, NONE) ), #FIXME
-       17: ( (55, NONE) ), #FIXME
-       18: ( (78, HIGH), (60, HIGH), (57, NONE) ),
-       19: ( (79, HIGH), (60, HIGH), (59, NONE) ),
+       14: ( (49, NONE), ), #FIXME
+       15: ( (51, NONE), ), #FIXME
+       16: ( (53, NONE), ), #FIXME
+       17: ( (55, NONE), ), #FIXME
+       18: ( (78, HIGH), (60, HIGH), (57, NONE) ), # FIXME: input always connected
+       19: ( (79, HIGH), (60, HIGH), (59, NONE) ), # FIXME: input always connected
     }
 
     GPIO_MUX_INPUT_PULLUP = {
@@ -143,10 +143,10 @@ class GPIOGalileoGen2(object):
        11: ( (44, LOW), (72, LOW), (24, HIGH), (25, HIGH) ),
        12: ( (42, HIGH), (43, HIGH) ),
        13: ( (46, LOW), (30, HIGH), (31, HIGH) ),
-       14: ( (49, HIGH) ), #FIXME
-       15: ( (51, HIGH) ), #FIXME
-       16: ( (53, HIGH) ), #FIXME
-       17: ( (55, HIGH) ), #FIXME
+       14: ( (49, HIGH), ), #FIXME
+       15: ( (51, HIGH), ), #FIXME
+       16: ( (53, HIGH), ), #FIXME
+       17: ( (55, HIGH), ), #FIXME
        18: ( (78, HIGH), (60, HIGH), (57, HIGH) ),
        19: ( (79, HIGH), (60, HIGH), (59, HIGH) ),
     }
@@ -166,10 +166,10 @@ class GPIOGalileoGen2(object):
        11: ( (44, LOW), (72, LOW), (24, HIGH), (25, LOW) ),
        12: ( (42, HIGH), (43, LOW) ),
        13: ( (46, LOW), (30, HIGH), (31, LOW) ),
-       14: ( (49, LOW) ), #FIXME
-       15: ( (51, LOW) ), #FIXME
-       16: ( (53, LOW) ), #FIXME
-       17: ( (55, LOW) ), #FIXME
+       14: ( (49, LOW), ), #FIXME
+       15: ( (51, LOW), ), #FIXME
+       16: ( (53, LOW), ), #FIXME
+       17: ( (55, LOW), ), #FIXME
        18: ( (78, HIGH), (60, HIGH), (57, LOW) ),
        19: ( (79, HIGH), (60, HIGH), (59, LOW) ),
     }
@@ -184,6 +184,12 @@ class GPIOGalileoGen2(object):
             return
         linux_pin = self.GPIO_MAPPING[pin]
         self.__write_value(linux_pin, state)
+
+    def digitalRead(self, pin):
+        if pin not in self.GPIO_MAPPING:
+            return
+        linux_pin = self.GPIO_MAPPING[pin]
+        return self.__read_value(linux_pin)
 
     def pinMode(self, pin, mode):
         if pin not in self.GPIO_MAPPING:
@@ -214,7 +220,9 @@ class GPIOGalileoGen2(object):
 
         if mode == OUTPUT:
             self.__set_direction(pin, OUTPUT)
-            self.__write_value(pin, value)
+            self.__write_value(pin, LOW)
+        elif mode in (INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
+            self.__set_direction(pin, INPUT)
 
     def cleanup(self):
         for pin in self.pins_in_use:
@@ -227,6 +235,14 @@ class GPIOGalileoGen2(object):
             value = 0
         cmd = 'echo %d > /sys/class/gpio/gpio%d/value' % (value, linux_pin)
         self.__exec_cmd(self.__write_value.__name__, cmd)
+
+    def __read_value(self, linux_pin):
+        cmd = '/sys/class/gpio/gpio%d/value' % (linux_pin)
+        self.__debug(self.__read_value.__name__, cmd)
+        f = open(cmd, 'r')
+        state = f.read()
+        f.close()
+        return int(state.strip())
 
     def __set_direction(self, linux_pin, direction):
         cmd = 'echo %s > /sys/class/gpio/gpio%d/direction' % (direction, linux_pin)
