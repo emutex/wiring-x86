@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+import os
 
 #########################################################################
 # Copyright © 2014, Emutex Ltd.
@@ -52,6 +54,7 @@ LOW = 'low'
 HIGH = 'high'
 NONE = 'in'
 DRIVE_STRONG = 'strong'
+DRIVE_HIZ = 'hiz'
 
 
 class GPIOGalileoGen2(object):
@@ -87,19 +90,19 @@ class GPIOGalileoGen2(object):
         4: ( (36, LOW), (37, NONE) ),
         5: ( (66, LOW), (18, LOW), (19, NONE) ),
         6: ( (68, LOW), (20, LOW), (21, NONE) ),
-        7: ( (38, LOW), (39, NONE) ), #TODO update for Fab-G
-        8: ( (40, LOW), (41, NONE) ), #TODO update for Fab-G
+        7: ( (38, LOW), (39, NONE) ), #FIXME update for Fab-G
+        8: ( (40, LOW), (41, NONE) ), #FIXME update for Fab-G
         9: ( (70, LOW), (22, LOW), (23, NONE) ), 
        10: ( (74, LOW), (26, LOW), (27, NONE) ),
        11: ( (44, LOW), (72, LOW), (24, LOW), (25, NONE) ),
        12: ( (42, LOW), (43, NONE) ),
        13: ( (46, LOW), (30, LOW), (31, NONE) ),
-       14: ( (49, NONE) ), #FIXME
-       15: ( (51, NONE) ), #FIXME
-       16: ( (53, NONE) ), #FIXME
-       17: ( (55, NONE) ), #FIXME
-       18: ( (78, HIGH), (60, HIGH), (57, NONE) ),
-       19: ( (79, HIGH), (60, HIGH), (59, NONE) ),
+       14: ( (49, NONE), ),
+       15: ( (51, NONE), ),
+       16: ( (53, NONE), ),
+       17: ( (55, NONE), ),
+       18: ( (78, HIGH), (60, HIGH), (57, NONE) ), #FIXME not working
+       19: ( (79, HIGH), (60, HIGH), (59, NONE) ), #FIXME not working
     }
 
     GPIO_MUX_INPUT = {
@@ -170,3 +173,90 @@ class GPIOGalileoGen2(object):
        18: ( (78, HIGH), (60, HIGH), (57, LOW) ),
        19: ( (79, HIGH), (60, HIGH), (59, LOW) ),
     }
+
+    def __init__(self, debug=False):
+        self.debug = debug
+        self.pins_in_use = []
+        self.pins_to_init = []
+
+    def digitalWrite(self, pin, state):
+        if pin not in self.GPIO_MAPPING:
+            return
+        linux_pin = self.GPIO_MAPPING[pin]
+        self.__write_value(linux_pin, state)
+
+    def pinMode(self, pin, mode):
+        if pin not in self.GPIO_MAPPING:
+            return
+
+        if mode == OUTPUT:
+            mux = self.GPIO_MUX_OUTPUT[pin]
+        elif mode == INPUT:
+            mux = self.GPIO_MUX_INPUT[pin]
+        elif mode == INPUT_PULLUP:
+            mux = self.GPIO_MUX_INPUT_PULLUP[pin]
+        elif mode == INPUT_PULLDOWN:
+            mux = self.GPIO_MUX_INPUT_PULLDOWN[pin]
+        else:
+            return
+
+        pin = self.GPIO_MAPPING[pin]
+        self.__export_pin(pin)
+
+        for vpin, value in mux:
+            self.__export_pin(vpin)
+
+            self.__set_direction(vpin, value)
+            if value == NONE:
+                self.__set_drive(vpin, DRIVE_HIZ)
+            elif value in (HIGH, LOW):
+                self.__set_drive(vpin, DRIVE_STRONG)
+
+        if mode == OUTPUT:
+            self.__set_direction(pin, OUTPUT)
+            self.__write_value(pin, value)
+
+    def cleanup(self):
+        for pin in self.pins_in_use:
+            self.__unexport_pin(pin)
+        del self.pins_in_use[:]
+
+    def __write_value(self, linux_pin, state):
+        value = 1
+        if state == LOW:
+            value = 0
+        cmd = 'echo %d > /sys/class/gpio/gpio%d/value' % (value, linux_pin)
+        self.__exec_cmd(self.__write_value.__name__, cmd)
+
+    def __set_direction(self, linux_pin, direction):
+        cmd = 'echo %s > /sys/class/gpio/gpio%d/direction' % (direction, linux_pin)
+        self.__exec_cmd(self.__set_direction.__name__, cmd)
+
+    def __export_pin(self, linux_pin):
+        self.pins_in_use.append(linux_pin)
+        cmd = 'echo %d > /sys/class/gpio/export' % linux_pin
+        self.__exec_cmd(self.__export_pin.__name__, cmd)
+
+    def __unexport_pin(self, linux_pin):
+        cmd = 'echo %d > /sys/class/gpio/unexport' % linux_pin
+        self.__exec_cmd(self.__unexport_pin.__name__, cmd)
+
+    def __set_drive(self, linux_pin, drive):
+        cmd = 'echo %s > /sys/class/gpio/gpio%d/drive' % (drive, linux_pin)
+        self.__exec_cmd(self.__set_drive.__name__, cmd)
+
+    def __debug(self, func_name, cmd):
+        if self.debug:
+            now = datetime.datetime.now().strftime("%B %d %I:%M:%S")
+            print '{0} {1: <20}{2}'.format(now, func_name + ':', cmd)
+
+    def __exec_cmd(self, caller, command):
+        self.__debug(caller, command)
+        os.system(command)
+
+setattr(GPIOGalileoGen2, 'INPUT', INPUT)
+setattr(GPIOGalileoGen2, 'INPUT_PULLUP', INPUT_PULLUP)
+setattr(GPIOGalileoGen2, 'INPUT_PULLDOWN', INPUT_PULLDOWN)
+setattr(GPIOGalileoGen2, 'OUTPUT', OUTPUT)
+setattr(GPIOGalileoGen2, 'LOW', LOW)
+setattr(GPIOGalileoGen2, 'HIGH', HIGH)
