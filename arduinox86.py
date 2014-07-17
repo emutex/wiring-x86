@@ -269,9 +269,22 @@ class GPIOGalileoGen2(object):
             self.__set_direction(pin, INPUT)
 
     def cleanup(self):
+        """Do a general cleanup.
+
+        Close all open handlers for reading and writing.
+        Unexport all exported GPIO pins.
+
+        Calling this function is not mandatory but it's recommended once you are
+        done using the library if it's being used with a larger application
+        that runs for a long period of time.
+        """
         for pin in self.pins_in_use:
             self.__unexport_pin(pin)
         del self.pins_in_use[:]
+
+        for handler in self.gpio_handlers.values():
+            handler.close()
+        self.gpio_handlers.clear()
 
     def __open_handler(self, linux_pin):
         try:
