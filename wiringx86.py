@@ -277,15 +277,15 @@ class GPIOGalileoGen2(object):
 
     def __export_pin(self, linux_pin):
         self.pins_in_use.append(linux_pin)
-        cmd = 'echo %d > /sys/class/gpio/export' % linux_pin
+        cmd = 'echo %d > /sys/class/gpio/export 2>&1' % linux_pin
         self.__exec_cmd(self.__export_pin.__name__, cmd)
 
     def __unexport_pin(self, linux_pin):
-        cmd = 'echo %d > /sys/class/gpio/unexport' % linux_pin
+        cmd = 'echo %d > /sys/class/gpio/unexport 2>&1' % linux_pin
         self.__exec_cmd(self.__unexport_pin.__name__, cmd)
 
     def __set_drive(self, linux_pin, drive):
-        cmd = 'echo %s > /sys/class/gpio/gpio%d/drive' % (drive, linux_pin)
+        cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
         self.__exec_cmd(self.__set_drive.__name__, cmd)
 
     def __debug(self, func_name, cmd):
