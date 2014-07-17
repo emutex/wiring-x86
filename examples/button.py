@@ -15,9 +15,11 @@ gpio = GPIO(debug=False)
 pin = 13
 button = 2
 
+print 'Setting up pins %d and %d...' % (pin, button)
 gpio.pinMode(pin, gpio.OUTPUT)
 gpio.pinMode(button, gpio.INPUT)
 
+print 'Reading from pin %d now...' % button
 try:
     while(True):
         state = gpio.digitalRead(button)
@@ -25,6 +27,8 @@ try:
             gpio.digitalWrite(pin, gpio.HIGH)
         else:
             gpio.digitalWrite(pin, gpio.LOW)
-except:
-        gpio.digitalWrite(pin, gpio.LOW)
-        gpio.cleanup()
+
+except KeyboardInterrupt:
+    print '\nCleaning up...'
+    gpio.digitalWrite(pin, gpio.LOW)
+    gpio.cleanup()
