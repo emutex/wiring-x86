@@ -10,7 +10,7 @@
 """
 
 import time
-from arduinox86 import GPIOGalileoGen2 as GPIO
+from wiringx86 import GPIOGalileoGen2 as GPIO
 
 gpio = GPIO(debug=False)
 

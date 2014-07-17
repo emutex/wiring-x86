@@ -1,4 +1,4 @@
-include arduinox86.py
+include wiringx86.py
 include setup.py
 include README.md
 include LICENSE

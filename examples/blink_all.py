@@ -9,8 +9,8 @@
  See license in LICENSE file.
 """
 
-from arduinox86 import GPIOGalileoGen2 as GPIO
 import time
+from wiringx86 import GPIOGalileoGen2 as GPIO
 
 gpio = GPIO(debug=False)
 state = gpio.HIGH
