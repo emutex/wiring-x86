@@ -180,8 +180,8 @@ class GPIOGalileoGen2(object):
 
     def __init__(self, debug=False):
         self.debug = debug
-        self.pins_in_use = [] #FIXME remove
-        self.pins_to_init = [] #FIXME remove
+        self.pins_in_use = []
+        self.gpio_handlers = {}
 
     def digitalWrite(self, pin, state):
         """Write a value to a GPIO pin.
@@ -195,8 +195,10 @@ class GPIOGalileoGen2(object):
          """
         if pin not in self.GPIO_MAPPING:
             return
-        linux_pin = self.GPIO_MAPPING[pin]
-        self.__write_value(linux_pin, state)
+        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
+        value = '0' if state == LOW else '1'
+        handler.write(value)
+        handler.seek(0)
 
     def digitalRead(self, pin):
         """Read GPIO pin's state.
@@ -247,6 +249,7 @@ class GPIOGalileoGen2(object):
 
         pin = self.GPIO_MAPPING[pin]
         self.__export_pin(pin)
+        self.__open_handler(pin)
 
         for vpin, value in mux:
             self.__export_pin(vpin)
@@ -256,17 +259,26 @@ class GPIOGalileoGen2(object):
                 self.__set_drive(vpin, DRIVE_HIZ)
             elif value in (HIGH, LOW):
                 self.__set_drive(vpin, DRIVE_STRONG)
+                self.__write_value(vpin, value)
 
         if mode == OUTPUT:
             self.__set_direction(pin, OUTPUT)
+            self.__set_drive(pin, DRIVE_STRONG)
             self.__write_value(pin, LOW)
         elif mode in (INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
             self.__set_direction(pin, INPUT)
 
-    def cleanup(self):  #FIXME remove
+    def cleanup(self):
         for pin in self.pins_in_use:
             self.__unexport_pin(pin)
         del self.pins_in_use[:]
+
+    def __open_handler(self, linux_pin):
+        try:
+            f = open('/sys/class/gpio/gpio%d/value' % linux_pin, 'w')
+            self.gpio_handlers[linux_pin] = f
+        except:
+            print "Failed opening value file for pin %d" % linux_pin
 
     def __write_value(self, linux_pin, state):
         value = 1
