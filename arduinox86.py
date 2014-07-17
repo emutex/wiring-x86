@@ -214,8 +214,10 @@ class GPIOGalileoGen2(object):
         """
         if pin not in self.GPIO_MAPPING:
             return
-        linux_pin = self.GPIO_MAPPING[pin]
-        return self.__read_value(linux_pin)
+        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
+        state = handler.read()
+        handler.seek(0)
+        return int(state.strip())
 
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
@@ -288,7 +290,7 @@ class GPIOGalileoGen2(object):
 
     def __open_handler(self, linux_pin):
         try:
-            f = open('/sys/class/gpio/gpio%d/value' % linux_pin, 'w')
+            f = open('/sys/class/gpio/gpio%d/value' % linux_pin, 'r+')
             self.gpio_handlers[linux_pin] = f
         except:
             print "Failed opening value file for pin %d" % linux_pin
@@ -299,14 +301,6 @@ class GPIOGalileoGen2(object):
             value = 0
         cmd = 'echo %d > /sys/class/gpio/gpio%d/value' % (value, linux_pin)
         self.__exec_cmd(self.__write_value.__name__, cmd)
-
-    def __read_value(self, linux_pin):
-        cmd = '/sys/class/gpio/gpio%d/value' % (linux_pin)
-        self.__debug(self.__read_value.__name__, cmd)
-        f = open(cmd, 'r')
-        state = f.read()
-        f.close()
-        return int(state.strip())
 
     def __set_direction(self, linux_pin, direction):
         cmd = 'echo %s > /sys/class/gpio/gpio%d/direction' % (direction, linux_pin)
