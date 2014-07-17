@@ -66,13 +66,13 @@ class GPIOGalileoGen2(object):
     GPIO_MAPPING = {
         0: 11,
         1: 12,
-        2: 13,
-        3: 14,
+        2: 61,
+        3: 62,
         4: 6,
         5: 0,
         6: 1,
-        7: 2,
-        8: 3,
+        7: 38,
+        8: 40,
         9: 4,
         10: 10,
         11: 5,
@@ -89,13 +89,13 @@ class GPIOGalileoGen2(object):
     GPIO_MUX_OUTPUT = {
         0: ((32, LOW), (33, NONE)),
         1: ((45, LOW), (28, LOW), (29, NONE)),
-        2: ((77, LOW), (34, LOW), (35, NONE)),
-        3: ((64, LOW), (76, LOW), (16, LOW), (17, NONE)),
+        2: ((77, LOW), (34, LOW), (35, NONE), (13, NONE)),
+        3: ((64, LOW), (76, LOW), (16, LOW), (17, NONE), (14, NONE)),
         4: ((36, LOW), (37, NONE)),
         5: ((66, LOW), (18, LOW), (19, NONE)),
         6: ((68, LOW), (20, LOW), (21, NONE)),
-        7: ((38, LOW), (39, NONE)),  # FIXME update for Fab-G
-        8: ((40, LOW), (41, NONE)),  # FIXME update for Fab-G
+        7: ((39, NONE), ),
+        8: ((41, NONE), ),
         9: ((70, LOW), (22, LOW), (23, NONE)),
         10: ((74, LOW), (26, LOW), (27, NONE)),
         11: ((44, LOW), (72, LOW), (24, LOW), (25, NONE)),
@@ -105,8 +105,8 @@ class GPIOGalileoGen2(object):
         15: ((51, NONE), ),
         16: ((53, NONE), ),
         17: ((55, NONE), ),
-        18: ((78, HIGH), (60, HIGH), (57, NONE)),  # FIXME not working
-        19: ((79, HIGH), (60, HIGH), (59, NONE)),  # FIXME not working
+        18: ((78, HIGH), (60, HIGH), (57, NONE)),
+        19: ((79, HIGH), (60, HIGH), (59, NONE)),
     }
 
     GPIO_MUX_INPUT = {
