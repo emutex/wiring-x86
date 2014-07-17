@@ -112,45 +112,45 @@ class GPIOGalileoGen2(object):
     GPIO_MUX_INPUT = {
         0: ((32, HIGH), (33, NONE)),
         1: ((45, LOW), (28, HIGH), (29, NONE)),
-        2: ((77, LOW), (34, HIGH), (35, NONE)),  # FIXME: input always connected
-        3: ((64, LOW), (76, LOW), (16, HIGH), (17, NONE)),  # FIXME: input always connected
+        2: ((77, LOW), (34, HIGH), (35, NONE), (13, NONE)),
+        3: ((64, LOW), (76, LOW), (16, HIGH), (17, NONE), (14, NONE)),
         4: ((36, HIGH), (37, NONE)),
         5: ((66, LOW), (18, HIGH), (19, NONE)),
         6: ((68, LOW), (20, HIGH), (21, NONE)),
-        7: ((38, HIGH), (39, NONE)),  # TODO update for Fab-G # FIXME: input always connected
-        8: ((40, HIGH), (41, NONE)),  # TODO update for Fab-G # FIXME: input always connected
+        7: ((39, NONE), ),
+        8: ((41, NONE), ),
         9: ((70, LOW), (22, HIGH), (23, NONE)),
         10: ((74, LOW), (26, HIGH), (27, NONE)),
         11: ((44, LOW), (72, LOW), (24, HIGH), (25, NONE)),
         12: ((42, HIGH), (43, NONE)),
         13: ((46, LOW), (30, HIGH), (31, NONE)),
-        14: ((49, NONE), ),  # FIXME
-        15: ((51, NONE), ),  # FIXME
-        16: ((53, NONE), ),  # FIXME
-        17: ((55, NONE), ),  # FIXME
-        18: ((78, HIGH), (60, HIGH), (57, NONE)),  # FIXME: input always connected
-        19: ((79, HIGH), (60, HIGH), (59, NONE)),  # FIXME: input always connected
+        14: ((49, NONE), ),
+        15: ((51, NONE), ),
+        16: ((53, NONE), ),
+        17: ((55, NONE), ),
+        18: ((78, HIGH), (60, HIGH), (57, NONE)),
+        19: ((79, HIGH), (60, HIGH), (59, NONE)),
     }
 
     GPIO_MUX_INPUT_PULLUP = {
         0: ((32, HIGH), (33, HIGH)),
         1: ((45, LOW), (28, HIGH), (29, HIGH)),
-        2: ((77, LOW), (34, HIGH), (35, HIGH)),
-        3: ((64, LOW), (76, LOW), (16, HIGH), (17, HIGH)),
+        2: ((77, LOW), (34, HIGH), (35, HIGH), (13, NONE)),
+        3: ((64, LOW), (76, LOW), (16, HIGH), (17, HIGH), (14, NONE)),
         4: ((36, HIGH), (37, HIGH)),
         5: ((66, LOW), (18, HIGH), (19, HIGH)),
         6: ((68, LOW), (20, HIGH), (21, HIGH)),
-        7: ((38, HIGH), (39, HIGH)),  # TODO update for Fab-G
-        8: ((40, HIGH), (41, HIGH)),  # TODO update for Fab-G
+        7: ((39, HIGH), ),
+        8: ((41, HIGH), ),
         9: ((70, LOW), (22, HIGH), (23, HIGH)),
         10: ((74, LOW), (26, HIGH), (27, HIGH)),
         11: ((44, LOW), (72, LOW), (24, HIGH), (25, HIGH)),
         12: ((42, HIGH), (43, HIGH)),
         13: ((46, LOW), (30, HIGH), (31, HIGH)),
-        14: ((49, HIGH), ),  # FIXME
-        15: ((51, HIGH), ),  # FIXME
-        16: ((53, HIGH), ),  # FIXME
-        17: ((55, HIGH), ),  # FIXME
+        14: ((49, HIGH), ),
+        15: ((51, HIGH), ),
+        16: ((53, HIGH), ),
+        17: ((55, HIGH), ),
         18: ((78, HIGH), (60, HIGH), (57, HIGH)),
         19: ((79, HIGH), (60, HIGH), (59, HIGH)),
     }
@@ -158,22 +158,22 @@ class GPIOGalileoGen2(object):
     GPIO_MUX_INPUT_PULLDOWN = {
         0: ((32, HIGH), ),
         1: ((45, LOW), (28, HIGH), (29, LOW)),
-        2: ((77, LOW), (34, HIGH), (35, LOW)),
-        3: ((64, LOW), (76, LOW), (16, HIGH), (17, LOW)),
+        2: ((77, LOW), (34, HIGH), (35, LOW), (13, NONE)),
+        3: ((64, LOW), (76, LOW), (16, HIGH), (17, LOW), (14, NONE)),
         4: ((36, HIGH), (37, LOW)),
         5: ((66, LOW), (18, HIGH), (19, LOW)),
         6: ((68, LOW), (20, HIGH), (21, LOW)),
-        7: ((38, HIGH), (39, LOW)),  # TODO update for Fab-G
-        8: ((40, HIGH), (41, LOW)),  # TODO update for Fab-G
+        7: ((39, LOW), ),
+        8: ((41, LOW), ),
         9: ((70, LOW), (22, HIGH), (23, LOW)),
         10: ((74, LOW), (26, HIGH), (27, LOW)),
         11: ((44, LOW), (72, LOW), (24, HIGH), (25, LOW)),
         12: ((42, HIGH), (43, LOW)),
         13: ((46, LOW), (30, HIGH), (31, LOW)),
-        14: ((49, LOW), ),  # FIXME
-        15: ((51, LOW), ),  # FIXME
-        16: ((53, LOW), ),  # FIXME
-        17: ((55, LOW), ),  # FIXME
+        14: ((49, LOW), ),
+        15: ((51, LOW), ),
+        16: ((53, LOW), ),
+        17: ((55, LOW), ),
         18: ((78, HIGH), (60, HIGH), (57, LOW)),
         19: ((79, HIGH), (60, HIGH), (59, LOW)),
     }
