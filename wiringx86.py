@@ -17,6 +17,7 @@ INPUT = 'in'
 INPUT_PULLUP = 'in_pullup'
 INPUT_PULLDOWN = 'in_pulldown'
 OUTPUT = 'out'
+ANALOG_INPUT = 'analog_input'
 LOW = 'low'
 HIGH = 'high'
 NONE = 'in'
@@ -52,6 +53,15 @@ class GPIOGalileoGen2(object):
         17: 54,
         18: 56,
         19: 58,
+    }
+
+    ADC_MAPPING = {
+        14: 0,
+        15: 1,
+        16: 2,
+        17: 3,
+        18: 4,
+        19: 5,
     }
 
     GPIO_MUX_OUTPUT = {
@@ -146,6 +156,15 @@ class GPIOGalileoGen2(object):
         19: ((79, HIGH), (60, HIGH), (59, LOW)),
     }
 
+    GPIO_MUX_ANALOG = {
+        14: ((48, NONE), (49, NONE)),
+        15: ((50, NONE), (51, NONE)),
+        16: ((52, NONE), (53, NONE)),
+        17: ((54, NONE), (55, NONE)),
+        18: ((78, LOW), (60, HIGH), (56, NONE), (57, NONE)),
+        19: ((79, LOW), (60, HIGH), (58, NONE), (59, NONE)),
+    }
+
     def __init__(self, debug=False):
         """Constructor
 
@@ -163,7 +182,7 @@ class GPIOGalileoGen2(object):
         The GPIO pin is assumed to be configured as OUTPUT
 
         Args:
-            pin: Arduino pin number (0-20)
+            pin: Arduino pin number (0-19)
             state: pin state to be written (LOW-HIGH)
 
         """
@@ -180,7 +199,7 @@ class GPIOGalileoGen2(object):
         The GPIO pin is assumed to be configured as INPUT
 
         Args:
-            pin: Arduino pin number (0-20)
+            pin: Arduino pin number (0-19)
 
         Returns:
             Current value of the GPIO pin as an Integer
@@ -192,6 +211,29 @@ class GPIOGalileoGen2(object):
         state = handler.read()
         handler.seek(0)
         return int(state.strip())
+
+    def analogRead(self, pin):
+        """Read analog input from the pin
+
+        The GPIO pin is assumed to be configured as ANALOG_INPUT.
+        Returns values in range 0-1023
+
+        Args:
+            pin: Arduino analog pin number (14-19)
+
+        Returns:
+            Digital representation with 10 bits resolution (range 0-1023) of
+            voltage on the pin.
+
+        """
+        if pin not in self.ADC_MAPPING:
+            return
+        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
+        voltage = handler.read()
+        handler.seek(0)
+        # ADC chip on the board reports voltages with 12 bits resolution.
+        # To convert it to 10 bits just shift right 2 bits.
+        return int(voltage.strip()) >> 2
 
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
@@ -220,12 +262,20 @@ class GPIOGalileoGen2(object):
             mux = self.GPIO_MUX_INPUT_PULLUP[pin]
         elif mode == INPUT_PULLDOWN:
             mux = self.GPIO_MUX_INPUT_PULLDOWN[pin]
+        elif mode == ANALOG_INPUT:
+            mux = self.GPIO_MUX_ANALOG[pin]
+            if pin not in self.ADC_MAPPING:
+                return
+            adc = self.ADC_MAPPING[pin]
         else:
             return
 
         pin = self.GPIO_MAPPING[pin]
         self.__export_pin(pin)
-        self.__open_handler(pin)
+        if mode == ANALOG_INPUT:
+            self.__open_analog_handler(pin, adc)
+        else:
+            self.__open_digital_handler(pin)
 
         for vpin, value in mux:
             self.__export_pin(vpin)
@@ -262,9 +312,16 @@ class GPIOGalileoGen2(object):
             handler.close()
         self.gpio_handlers.clear()
 
-    def __open_handler(self, linux_pin):
+    def __open_digital_handler(self, linux_pin):
         try:
             f = open('/sys/class/gpio/gpio%d/value' % linux_pin, 'r+')
+            self.gpio_handlers[linux_pin] = f
+        except:
+            print "Failed opening value file for pin %d" % linux_pin
+
+    def __open_analog_handler(self, linux_pin, adc):
+        try:
+            f = open('/sys/bus/iio/devices/iio:device0/in_voltage%d_raw' % adc, 'r+')
             self.gpio_handlers[linux_pin] = f
         except:
             print "Failed opening value file for pin %d" % linux_pin
@@ -307,5 +364,6 @@ setattr(GPIOGalileoGen2, 'INPUT', INPUT)
 setattr(GPIOGalileoGen2, 'INPUT_PULLUP', INPUT_PULLUP)
 setattr(GPIOGalileoGen2, 'INPUT_PULLDOWN', INPUT_PULLDOWN)
 setattr(GPIOGalileoGen2, 'OUTPUT', OUTPUT)
+setattr(GPIOGalileoGen2, 'ANALOG_INPUT', ANALOG_INPUT)
 setattr(GPIOGalileoGen2, 'LOW', LOW)
 setattr(GPIOGalileoGen2, 'HIGH', HIGH)
