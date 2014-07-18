@@ -1,7 +1,8 @@
-# Wiringx86-Python
+# Wiring-x86-Python
 
-Wiringx86-Python is a Python module to use most Arduino functionalities on an Intel® Galileo Gen2 board. It
-provides a simple API (much likely original WiringPi-Python module) to talk to the GPIOs in a very easy way.
+Wiring-x86-Python is a Python module to use most Arduino functionalities on an
+Intel® Galileo Gen2 board. It provides a simple API (much likely original
+WiringPi-Python module) to talk to the GPIO pins in a very easily.
 
 At the moment only basic GPIO functionality is enabled. That is:
 
@@ -10,8 +11,12 @@ At the moment only basic GPIO functionality is enabled. That is:
 *  Reading from a GPIO pin configured as pullup input.
 *  Reading from a GPIO pin configured as pulldown input.
 
-The Wiringx86-Python module is meant to be used on Intel® Galileo Gen2 platform with its original OS. For more information on the Intel® Galileo Gen2 board and how to get this software please follow this [link](https://communities.intel.com/community/makers). Failing to do so will make the module not to work at all. The
-logic behind the module is backed by Intel® Galileo Gen2 GPIO driver sysfs interface.
+The Wiring-x86-Python module is meant to be used on Intel® Galileo Gen2 platform
+with its original YOCTO Linux OS. For more information on the Intel® Galileo
+Gen2 board and how to get this software go to
+[Intel® Makers site][intel-makers].
+Failing to do so will make the module not to work at all. The logic behind the
+module is backed by Intel® Galileo Gen2 GPIO driver sysfs interface.
 
 This is a simple example:
 
@@ -51,3 +56,6 @@ This is a simple example:
      gpio.cleanup()
 
 ```
+______
+
+[intel-makers]: https://communities.intel.com/community/makers

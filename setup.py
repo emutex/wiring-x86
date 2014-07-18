@@ -12,7 +12,7 @@
 from distutils.core import setup
 
 setup(
-    name='Wiringx86-Python',
+    name='Wiring-x86-Python',
     version='0.1',
     author='Nicolás Pernas Maradei',
     author_email='nicolas.pernas.maradei@emutex.com',
