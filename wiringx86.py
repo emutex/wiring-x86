@@ -18,6 +18,7 @@ INPUT_PULLUP = 'in_pullup'
 INPUT_PULLDOWN = 'in_pulldown'
 OUTPUT = 'out'
 ANALOG_INPUT = 'analog_input'
+PWM = 'pwm'
 LOW = 'low'
 HIGH = 'high'
 NONE = 'in'
@@ -62,6 +63,15 @@ class GPIOGalileoGen2(object):
         17: 3,
         18: 4,
         19: 5,
+    }
+
+    PWM_MAPPING = {
+        3: 1,
+        5: 3,
+        6: 5,
+        9: 7,
+        10: 11,
+        11: 9,
     }
 
     GPIO_MUX_OUTPUT = {
@@ -156,7 +166,7 @@ class GPIOGalileoGen2(object):
         19: ((79, HIGH), (60, HIGH), (59, LOW)),
     }
 
-    GPIO_MUX_ANALOG = {
+    GPIO_MUX_ANALOG_INPUT = {
         14: ((48, NONE), (49, NONE)),
         15: ((50, NONE), (51, NONE)),
         16: ((52, NONE), (53, NONE)),
@@ -164,6 +174,19 @@ class GPIOGalileoGen2(object):
         18: ((78, LOW), (60, HIGH), (56, NONE), (57, NONE)),
         19: ((79, LOW), (60, HIGH), (58, NONE), (59, NONE)),
     }
+
+    GPIO_MUX_PWM = {
+        3: ((64, HIGH), (76, LOW), (16, LOW), (17, NONE), (62, NONE)),
+        5: ((66, HIGH), (18, LOW), (19, NONE)),
+        6: ((68, HIGH), (20, LOW), (21, NONE)),
+        9: ((70, HIGH), (22, LOW), (23, NONE)),
+        10: ((74, HIGH), (26, LOW), (27, NONE)),
+        11: ((72, HIGH), (24, LOW), (25, NONE)),
+    }
+
+    PWM_MIN_PERIOD = 666666
+    PWM_MAX_PERIOD = 41666666
+    PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, debug=False):
         """Constructor
@@ -175,6 +198,10 @@ class GPIOGalileoGen2(object):
         self.debug = debug
         self.pins_in_use = []
         self.gpio_handlers = {}
+        self.pwm_period = self.PWM_DEFAULT_PERIOD
+        self.is_pwm_period_set = False
+        self.exported_pwm = []
+        self.enabled_pwm = {}
 
     def digitalWrite(self, pin, state):
         """Write a value to a GPIO pin.
@@ -235,6 +262,48 @@ class GPIOGalileoGen2(object):
         # To convert it to 10 bits just shift right 2 bits.
         return int(voltage.strip()) >> 2
 
+    def analogWrite(self, pin, value):
+        """Write analog output (PWM)
+
+        The GPIO pin is assumed to be configured as PWM.
+        Generates a PWM signal with the desired duty cycle. The value must
+        be in range 0-255.
+
+        Args:
+            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
+            value: the duty cycle: between 0 (always off) and 255 (always on)
+
+        """
+        if pin not in self.PWM_MAPPING:
+            return
+
+        if value < 0:
+            value = 0
+        elif value > 255:
+            value = 255
+
+        pwm = self.PWM_MAPPING[pin]
+        if not self.enabled_pwm.get(pwm, False):
+            self.__enable_pwm(pwm)
+        self.__set_pwm_duty_cycle(pwm, self.pwm_period * value / 255)
+
+    def setPWMPeriod(self, period):
+        """Set the PWM period
+
+        On GalileoGen2 all PWM channels share the same period. When this is set
+        all the PWM outputs are disabled for at least 1ms while the chip
+        reconfigures itself.
+
+        Args:
+            period: period in nanoseconds
+
+        """
+        if period < self.PWM_MIN_PERIOD or period > self.PWM_MAX_PERIOD:
+            return
+
+        self.pwm_period = period
+        self.__set_pwm_period(period)
+
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
 
@@ -263,15 +332,21 @@ class GPIOGalileoGen2(object):
         elif mode == INPUT_PULLDOWN:
             mux = self.GPIO_MUX_INPUT_PULLDOWN[pin]
         elif mode == ANALOG_INPUT:
-            mux = self.GPIO_MUX_ANALOG[pin]
+            mux = self.GPIO_MUX_ANALOG_INPUT[pin]
             if pin not in self.ADC_MAPPING:
                 return
             adc = self.ADC_MAPPING[pin]
+        elif mode == PWM:
+            mux = self.GPIO_MUX_PWM[pin]
+            if pin not in self.PWM_MAPPING:
+                return
+            pwm = self.PWM_MAPPING[pin]
         else:
             return
 
         pin = self.GPIO_MAPPING[pin]
         self.__export_pin(pin)
+
         if mode == ANALOG_INPUT:
             self.__open_analog_handler(pin, adc)
         else:
@@ -293,12 +368,20 @@ class GPIOGalileoGen2(object):
             self.__write_value(pin, LOW)
         elif mode in (INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
             self.__set_direction(pin, INPUT)
+        elif mode == PWM:
+            self.__export_pwm(pwm)
+            self.__set_pwm_duty_cycle(pwm, 0)
+            self.enabled_pwm[pwm] = False
+            if not self.is_pwm_period_set:
+                self.__set_pwm_period(self.pwm_period)
+                self.is_pwm_period_set = True
 
     def cleanup(self):
         """Do a general cleanup.
 
         Close all open handlers for reading and writing.
         Unexport all exported GPIO pins.
+        Unexport all exported PWM channels.
 
         Calling this function is not mandatory but it's recommended once you are
         done using the library if it's being used with a larger application
@@ -311,6 +394,11 @@ class GPIOGalileoGen2(object):
         for handler in self.gpio_handlers.values():
             handler.close()
         self.gpio_handlers.clear()
+
+        for pwm in self.exported_pwm:
+            self.__unexport_pwm(pwm)
+        del self.exported_pwm[:]
+        self.enabled_pwm.clear()
 
     def __open_digital_handler(self, linux_pin):
         try:
@@ -351,6 +439,28 @@ class GPIOGalileoGen2(object):
         cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
         self.__exec_cmd(self.__set_drive.__name__, cmd)
 
+    def __export_pwm(self, channel):
+        self.exported_pwm.append(channel)
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/export 2>&1' % channel
+        self.__exec_cmd(self.__export_pwm.__name__, cmd)
+
+    def __unexport_pwm(self, channel):
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/unexport 2>&1' % channel
+        self.__exec_cmd(self.__unexport_pwm.__name__, cmd)
+
+    def __set_pwm_period(self, period):
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
+        self.__exec_cmd(self.__set_pwm_period.__name__, cmd)
+
+    def __set_pwm_duty_cycle(self, channel, duty_cycle):
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/pwm%d/duty_cycle' % (duty_cycle, channel)
+        self.__exec_cmd(self.__set_pwm_duty_cycle.__name__, cmd)
+
+    def __enable_pwm(self, pwm):
+        self.enabled_pwm[pwm] = True
+        cmd = 'echo 1 > /sys/class/pwm/pwmchip0/pwm%d/enable' % pwm
+        self.__exec_cmd(self.__enable_pwm.__name__, cmd)
+
     def __debug(self, func_name, cmd):
         if self.debug:
             now = datetime.datetime.now().strftime("%B %d %I:%M:%S")
@@ -365,5 +475,6 @@ setattr(GPIOGalileoGen2, 'INPUT_PULLUP', INPUT_PULLUP)
 setattr(GPIOGalileoGen2, 'INPUT_PULLDOWN', INPUT_PULLDOWN)
 setattr(GPIOGalileoGen2, 'OUTPUT', OUTPUT)
 setattr(GPIOGalileoGen2, 'ANALOG_INPUT', ANALOG_INPUT)
+setattr(GPIOGalileoGen2, 'PWM', PWM)
 setattr(GPIOGalileoGen2, 'LOW', LOW)
 setattr(GPIOGalileoGen2, 'HIGH', HIGH)
