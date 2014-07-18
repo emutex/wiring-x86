@@ -318,40 +318,31 @@ class GPIOGalileoGen2(object):
                 INPUT: pin used as input (high impedance). Use to read from it
                 INPUT_PULLUP: pin used as input (pullup resistor). Use to read from it
                 INPUT_PULLDOWN: pin used as input (pulldown resistor). Use to read from it
+                ANALOG_INPUT: pin used as analog input (ADC)
+                PWM: pin used as analog output (PWM)
 
         """
         if pin not in self.GPIO_MAPPING:
             return
 
-        if mode == OUTPUT:
-            mux = self.GPIO_MUX_OUTPUT[pin]
-        elif mode == INPUT:
-            mux = self.GPIO_MUX_INPUT[pin]
-        elif mode == INPUT_PULLUP:
-            mux = self.GPIO_MUX_INPUT_PULLUP[pin]
-        elif mode == INPUT_PULLDOWN:
-            mux = self.GPIO_MUX_INPUT_PULLDOWN[pin]
-        elif mode == ANALOG_INPUT:
-            mux = self.GPIO_MUX_ANALOG_INPUT[pin]
-            if pin not in self.ADC_MAPPING:
-                return
-            adc = self.ADC_MAPPING[pin]
-        elif mode == PWM:
-            mux = self.GPIO_MUX_PWM[pin]
-            if pin not in self.PWM_MAPPING:
-                return
-            pwm = self.PWM_MAPPING[pin]
-        else:
+        mux = self.__select_muxing(mode, pin)
+        if mux is None:
             return
 
-        pin = self.GPIO_MAPPING[pin]
-        self.__export_pin(pin)
+        linux_pin = self.GPIO_MAPPING[pin]
+        self.__export_pin(linux_pin)
 
+        # In these two cases we open file handlers to write directly into them.
+        # That makes it faster than going through sysfs.
+        # No bother with PWM.
         if mode == ANALOG_INPUT:
-            self.__open_analog_handler(pin, adc)
-        else:
-            self.__open_digital_handler(pin)
+            adc = self.ADC_MAPPING[pin]
+            self.__open_analog_handler(linux_pin, adc)
+        elif mode in (OUTPUT, INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
+            self.__open_digital_handler(linux_pin)
 
+        # Walk through the muxing table and set the pins to their values. This
+        # is the actual muxing.
         for vpin, value in mux:
             self.__export_pin(vpin)
 
@@ -363,12 +354,13 @@ class GPIOGalileoGen2(object):
                 self.__write_value(vpin, value)
 
         if mode == OUTPUT:
-            self.__set_direction(pin, OUTPUT)
-            self.__set_drive(pin, DRIVE_STRONG)
-            self.__write_value(pin, LOW)
+            self.__set_direction(linux_pin, OUTPUT)
+            self.__set_drive(linux_pin, DRIVE_STRONG)
+            self.__write_value(linux_pin, LOW)
         elif mode in (INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
-            self.__set_direction(pin, INPUT)
+            self.__set_direction(linux_pin, INPUT)
         elif mode == PWM:
+            pwm = self.PWM_MAPPING[pin]
             self.__export_pwm(pwm)
             self.__set_pwm_duty_cycle(pwm, 0)
             self.enabled_pwm[pwm] = False
@@ -399,6 +391,21 @@ class GPIOGalileoGen2(object):
             self.__unexport_pwm(pwm)
         del self.exported_pwm[:]
         self.enabled_pwm.clear()
+
+    def __select_muxing(self, mode, pin):
+        if mode == OUTPUT:
+            return self.GPIO_MUX_OUTPUT[pin]
+        elif mode == INPUT:
+            return self.GPIO_MUX_INPUT[pin]
+        elif mode == INPUT_PULLUP:
+            return self.GPIO_MUX_INPUT_PULLUP[pin]
+        elif mode == INPUT_PULLDOWN:
+            return self.GPIO_MUX_INPUT_PULLDOWN[pin]
+        elif mode == ANALOG_INPUT and pin in self.ADC_MAPPING:
+                return self.GPIO_MUX_ANALOG_INPUT[pin]
+        elif mode == PWM and pin in self.PWM_MAPPING:
+            return self.GPIO_MUX_PWM[pin]
+        return None
 
     def __open_digital_handler(self, linux_pin):
         try:
