@@ -7,6 +7,10 @@
  Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
 
  See license in LICENSE file.
+
+ This example is inspired on Arduino Blink example.
+ http://arduino.cc/en/Tutorial/Blink
+
 """
 
 # Import the time module enable sleeps between turning the led on and off.
