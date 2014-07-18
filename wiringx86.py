@@ -147,6 +147,12 @@ class GPIOGalileoGen2(object):
     }
 
     def __init__(self, debug=False):
+        """Constructor
+
+        Args:
+            debug: enables the debug mode showing the interaction with sysfs
+
+        """
         self.debug = debug
         self.pins_in_use = []
         self.gpio_handlers = {}
@@ -160,7 +166,7 @@ class GPIOGalileoGen2(object):
             pin: Arduino pin number (0-20)
             state: pin state to be written (LOW-HIGH)
 
-         """
+        """
         if pin not in self.GPIO_MAPPING:
             return
         handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
