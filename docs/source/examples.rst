@@ -13,3 +13,4 @@ directory of the Wiring-x86 distribution.
    example_blink.rst
    example_blink_all.rst
    example_button.rst
+   example_analog_input.rst
