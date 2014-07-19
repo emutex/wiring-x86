@@ -265,9 +265,8 @@ class GPIOGalileoGen2(object):
     def analogWrite(self, pin, value):
         """Write analog output (PWM)
 
-        The GPIO pin is assumed to be configured as PWM.
-        Generates a PWM signal with the desired duty cycle. The value must
-        be in range 0-255.
+        The GPIO pin is assumed to be configured as PWM. Generates a PWM
+        signal with the desired duty cycle. The value must be in range 0-255.
 
         Args:
             pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
@@ -290,8 +289,8 @@ class GPIOGalileoGen2(object):
     def setPWMPeriod(self, period):
         """Set the PWM period
 
-        On GalileoGen2 all PWM channels share the same period. When this is set
-        all the PWM outputs are disabled for at least 1ms while the chip
+        On GalileoGen2 all PWM channels share the same period. When this is
+        set all the PWM outputs are disabled for at least 1ms while the chip
         reconfigures itself.
 
         Args:
@@ -308,18 +307,21 @@ class GPIOGalileoGen2(object):
         """Set mode to GPIO pin`.
 
         This function must be called before doing any other operation on the
-        pin. It also sets up the muxing needed in Intel® Galileo Gen2 board for
-        the pin to behave as the user wants to.
+        pin. It also sets up the muxing needed in Intel® Galileo Gen2 board
+        for the pin to behave as the user wants to.
 
         Args:
             pin: Arduino pin number (0-20)
             mode: pin mode must be:
-                OUTPUT: pin used as output. Use to write into it
-                INPUT: pin used as input (high impedance). Use to read from it
-                INPUT_PULLUP: pin used as input (pullup resistor). Use to read from it
-                INPUT_PULLDOWN: pin used as input (pulldown resistor). Use to read from it
-                ANALOG_INPUT: pin used as analog input (ADC)
-                PWM: pin used as analog output (PWM)
+                OUTPUT:         Pin used as output. Use to write into it.
+                INPUT:          Pin used as input (high impedance). Use to read
+                                from it.
+                INPUT_PULLUP:   Pin used as input (pullup resistor). Use to read
+                                from it.
+                INPUT_PULLDOWN: Pin used as input (pulldown resistor). Use to
+                                read from it.
+                ANALOG_INPUT:   Pin used as analog input (ADC).
+                PWM:            Pin used as analog output (PWM).
 
         """
         if pin not in self.GPIO_MAPPING:
@@ -375,9 +377,10 @@ class GPIOGalileoGen2(object):
         Unexport all exported GPIO pins.
         Unexport all exported PWM channels.
 
-        Calling this function is not mandatory but it's recommended once you are
-        done using the library if it's being used with a larger application
-        that runs for a long period of time.
+        Calling this function is not mandatory but it's recommended once you
+        are done using the library if it's being used with a larger
+        application that runs for a long period of time.
+
         """
         for pin in self.pins_in_use:
             self.__unexport_pin(pin)
