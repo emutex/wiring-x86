@@ -286,14 +286,15 @@ class GPIOGalileoGen2(object):
             self.__enable_pwm(pwm)
         self.__set_pwm_duty_cycle(pwm, self.pwm_period * value / 255)
 
-    def setPWMPeriod(self, period):
+    def setPWMPeriod(self, pin, period):
         """Set the PWM period
 
         On GalileoGen2 all PWM channels share the same period. When this is
         set all the PWM outputs are disabled for at least 1ms while the chip
-        reconfigures itself.
+        reconfigures itself. The PWM pin is then ignored.
 
         Args:
+            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
             period: period in nanoseconds
 
         """

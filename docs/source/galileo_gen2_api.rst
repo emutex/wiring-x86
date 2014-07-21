@@ -113,16 +113,17 @@ values in range 0-1023::
 gpio.setPWMPeriod()
 -------------------
 
-.. function:: setPWMPeriod(period)
+.. function:: setPWMPeriod(pin, period)
 
    Set the PWM period.
 
+   :param: int pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11).
    :param: int period: PWM period in nanoseconds.
 
 
 On the Galileo Gen2 all PWM channels share the same period. When this is set
 all the PWM outputs are disabled for at least 1ms while the chip reconfigures
-itself.
+itself. The PWM pin is then ignored.
 
 gpio.pinMode()
 --------------
