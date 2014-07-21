@@ -1,5 +1,5 @@
 include wiringx86.py
 include setup.py
-include README.md
+include README.rst
 include LICENSE.txt
 include examples/*

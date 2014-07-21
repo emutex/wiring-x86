@@ -13,14 +13,14 @@ from distutils.core import setup
 
 setup(
     name='Wiring-x86',
-    version='0.1',
+    version='0.0.1',
     author='Nicolás Pernas Maradei',
     author_email='nicolas.pernas.maradei@emutex.com',
-    #     url='',
+    url='https://github.com/emutex/wiring-x86',
     py_modules=['wiringx86'],
     license='BSD',
     description='A Python module to use most Arduino wiring functions on Intel® Arduino capable boards.',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     classifiers=[
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
