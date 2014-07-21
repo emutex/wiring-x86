@@ -11,12 +11,14 @@ pins on the board.
    :align: center
 
 
-At the moment only basic GPIO functionality is enabled. That is:
+At the momment the Wiring-x86 library provides support to:
 
 *  Writing to a GPIO pin configured as output.
 *  Reading from a GPIO pin configured as high impedance input.
 *  Reading from a GPIO pin configured as pullup input.
 *  Reading from a GPIO pin configured as pulldown input.
+*  Reading from a GPIO pin configured as analog input (ADC).
+*  Writing to a GPIO pin configured as analog output (PWM).
 
 Here is a simple example::
 

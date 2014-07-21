@@ -33,7 +33,7 @@ The ``GPIO()`` constructor is used to create a new gpio object::
 
    gpio = GPIO()
 
-The ``debug`` constructor options can be used to enables the debug mode
+The ``debug`` constructor options can be used to enable the debug mode
 showing the interaction with sysfs::
 
    gpio = GPIO(debug=False)
@@ -46,15 +46,16 @@ gpio.digitalWrite()
 
    Configure a gpio pin for output.
 
-   :param int pin:      Arduino pin number (0-20)
+   :param int pin:      Arduino pin number (0-19)
    :param string state: Pin state to be written (LOW-HIGH)
 
 The ``digitalWrite()`` method is used to set the state for a given gpio
-pin. The available states are ``high`` and ``low``. These are generally passed as ``GPIO`` properties such as ``gpio.HIGH`` for convenience::
+pin. The available states are ``high`` and ``low``. These are generally passed
+as ``GPIO`` properties such as ``gpio.HIGH`` for convenience::
 
     gpio.digitalWrite(13, gpio.HIGH)
 
-The GPIO pin is assumed to be configured as OUTPUT when writing.
+The GPIO pin is assumed to be configured as ``gpio.OUTPUT`` when writing.
 
 
 gpio.digitalRead()
@@ -73,7 +74,7 @@ Read the current state of a GPIO pin::
 
     state = gpio.digitalRead(pin)
 
-The GPIO pin is assumed to be configured as INPUT
+The GPIO pin is assumed to be configured as ``gpio.INPUT``
 
 
 gpio.analogWrite()
@@ -88,8 +89,8 @@ gpio.analogWrite()
    :param int value: The duty cycle: between 0 (always off) and 255 (always on).
 
 
-The gpio pin is assumed to be configured as PWM. Generates a PWM signal with
-the desired duty cycle. The value must be in range 0-255.
+The gpio pin is assumed to be configured as ``gpio.PWM``. Generates a PWM signal
+with the desired duty cycle. The value must be in range 0-255.
 
 
 gpio.analogRead()
@@ -103,8 +104,8 @@ gpio.analogRead()
    :return:         Digital representation with 10 bits resolution
                     (range 0-1023) of voltage on the pin.
 
-The GPIO pin is assumed to be configured as ANALOG_INPUT. Returns values in
-range 0-1023::
+The GPIO pin is assumed to be configured as ``gpio.ANALOG_INPUT``. Returns
+values in range 0-1023::
 
    value = gpio.analogRead(analogpin)
 
@@ -130,7 +131,7 @@ gpio.pinMode()
 
    Set the mode of a GPIO pin.
 
-   :param int pin:      Arduino pin number (0-20)
+   :param int pin:      Arduino pin number (0-19)
    :param string mode:  Pin mode. See below.
 
 This function must be called before doing any other operation on the pin. It

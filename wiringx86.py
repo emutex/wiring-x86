@@ -30,7 +30,7 @@ class GPIOGalileoGen2(object):
 
     """Class for managing GPIO pinout on Intel® Galileo Gen2 board
 
-    TODO: longer description here
+    See docs/ directory for more information.
     """
 
     GPIO_MAPPING = {
@@ -311,7 +311,7 @@ class GPIOGalileoGen2(object):
         for the pin to behave as the user wants to.
 
         Args:
-            pin: Arduino pin number (0-20)
+            pin: Arduino pin number (0-19)
             mode: pin mode must be:
                 OUTPUT:         Pin used as output. Use to write into it.
                 INPUT:          Pin used as input (high impedance). Use to read
