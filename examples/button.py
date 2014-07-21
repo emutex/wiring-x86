@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-"""
- Copyright © 2014, Emutex Ltd.
- All rights reserved.
- http://www.emutex.com
+#
+# Copyright © 2014, Emutex Ltd.
+# All rights reserved.
+# http://www.emutex.com
+#
+# Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
+#
+# See license in LICENSE.txt file.
+#
+# This example is inspired on Arduino Button example.
+# http://arduino.cc/en/Tutorial/Button
 
- Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
 
- See license in LICENSE file.
-
- This example is inspired on Arduino Button example.
- http://arduino.cc/en/Tutorial/Button
-
-"""
 # Import the GPIOGalileoGen2 class from the wiringx86 module.
 from wiringx86 import GPIOGalileoGen2 as GPIO
 

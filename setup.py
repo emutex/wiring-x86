@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
- Copyright © 2014, Emutex Ltd.
- All rights reserved.
- http://www.emutex.com
+#
+# Copyright © 2014, Emutex Ltd.
+# All rights reserved.
+# http://www.emutex.com
+#
+# Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
+#
+# See license in LICENSE.txt file.
 
- Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
-
- See license in LICENSE file.
-"""
 
 from distutils.core import setup
 

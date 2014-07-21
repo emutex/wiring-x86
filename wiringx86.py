@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-"""
- Copyright © 2014, Emutex Ltd.
- All rights reserved.
- http://www.emutex.com
+#
+# Copyright © 2014, Emutex Ltd.
+# All rights reserved.
+# http://www.emutex.com
+#
+# Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
+# Author: Dave Hunt <dave@emutex.com>
+#
+# See license in LICENSE.txt file.
+#
+# Wiring-x86 is a Python module that lets you use Arduino like functionality
+# on an Intel® Galileo Gen2 board.
 
- Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
- Author: Dave Hunt <dave@emutex.com>
-
- See license in LICENSE file.
-"""
 
 import datetime
 import os

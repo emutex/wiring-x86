@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-"""
- Copyright © 2014, Emutex Ltd.
- All rights reserved.
- http://www.emutex.com
+#
+# Copyright © 2014, Emutex Ltd.
+# All rights reserved.
+# http://www.emutex.com
+#
+# Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
+#
+# See license in LICENSE.txt file.
+#
+# This example is inspired on Arduino Fade example.
+# http://arduino.cc/en/Tutorial/Fade
 
- Author: Nicolás Pernas Maradei <nicolas.pernas.maradei@emutex.com>
-
- See license in LICENSE file.
-
- This example is inspired on Arduino Fade example.
- http://arduino.cc/en/Tutorial/Fade
-
-"""
 
 # Import the time module enable sleeps between turning the led on and off.
 import time
