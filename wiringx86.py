@@ -437,7 +437,7 @@ class GPIOGalileoGen2(object):
 
     def __set_direction(self, linux_pin, direction):
         dirfile = '/sys/class/gpio/gpio%d/direction' % linux_pin
-        cmd = '[[ -f %s ]] && echo %s > %s' % (dirfile, direction, dirfile)
+        cmd = 'test -f %s && echo %s > %s' % (dirfile, direction, dirfile)
         self.__exec_cmd(self.__set_direction.__name__, cmd)
 
     def __export_pin(self, linux_pin):
