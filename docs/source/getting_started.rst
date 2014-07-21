@@ -29,21 +29,17 @@ do this.
 Using PIP
 *********
 
-The `pip <http://www.pip-installer.org/en/latest/index.html>`_ installer is
-the preferred method for installing Python modules from `PyPI
+If available, the `pip <http://www.pip-installer.org/en/latest/index.html>`_
+installer is the preferred method for installing Python modules from `PyPI
 <http://pypi.python.org/pypi>`_, the Python Package Index::
 
     $ sudo pip install wiring-x86
 
-.. Note::
-   Windows users can omit ``sudo`` at the start of the command.
-
-
 Using Easy_Install
 ******************
 
-If ``pip`` doesn't work you can try
-`easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
+If ``pip`` isn't available on your system then `easy_install
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ may be::
 
     $ sudo easy_install wiring-x86
 
@@ -72,6 +68,7 @@ Cloning from GitHub
 
 The Wiring-x86 source code and bug tracker is in the
 `wiring-x86 repository <http://github.com/emutex/wiring-x86>`_ on GitHub.
+
 You can clone the repository and install from it as follows::
 
     $ git clone https://github.com/emutex/wiring-x86.git
