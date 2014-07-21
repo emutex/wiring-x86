@@ -10,4 +10,4 @@ The latest version of this documentaion is available on Read The Docs:
 See `Emutex Labs <http://www.emutexlabs.com>`_ for other cool projects and
 Maker information.
 
-See out main website to lear more abuot `Emutex <http://www.emutex.com>`_.
+See out main website to learn more about `Emutex <http://www.emutex.com>`_.
