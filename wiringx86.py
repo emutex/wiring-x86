@@ -406,7 +406,7 @@ class GPIOGalileoGen2(object):
         elif mode == INPUT_PULLDOWN:
             return self.GPIO_MUX_INPUT_PULLDOWN[pin]
         elif mode == ANALOG_INPUT and pin in self.ADC_MAPPING:
-                return self.GPIO_MUX_ANALOG_INPUT[pin]
+            return self.GPIO_MUX_ANALOG_INPUT[pin]
         elif mode == PWM and pin in self.PWM_MAPPING:
             return self.GPIO_MUX_PWM[pin]
         return None

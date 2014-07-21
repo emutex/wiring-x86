@@ -1,3 +1,0 @@
-#!/bin/bash
-
-find . -name "*.py" -exec autopep8 -i --ignore=E501 {} \;
