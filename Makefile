@@ -26,5 +26,5 @@ autopep8:
 	@find . -name "*.py" -exec autopep8 -i --ignore=E501 {} \;
 
 readthedocs:
-	@curl -X POST http://readthedocs.org/build/XXXX
+	@curl -X POST http://readthedocs.org/build/wiring-x86
 

@@ -16,7 +16,9 @@ At the momment the Wiring-x86 library provides support to:
 -  Reading from a GPIO pin configured as analog input (ADC).
 -  Writing to a GPIO pin configured as analog output (PWM).
 
-Here is a simple example::
+Here is a simple example:
+
+.. code-block:: python
 
     # Import the time module enable sleeps between turning the led on and off.
     import time
