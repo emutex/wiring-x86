@@ -58,6 +58,9 @@ Here is a simple example:
         # Do a general cleanup. Calling this function is not mandatory.
         gpio.cleanup()
 
+Full documentation can be found at
+`wiring-x86 site <http://wiring-x86.readthedocs.org>`_ on Read the Docs.
+
 The Wiring-x86 module is meant to be used on Intel® Galileo Gen2
 platform with its original YOCTO Linux OS. For more information on the
 Intel® Galileo Gen2 board and how to get this software go to `Intel®

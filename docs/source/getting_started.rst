@@ -26,37 +26,16 @@ Installing Wiring-x86
 The first step is to install the Wiring-x86 module. There are several ways to
 do this.
 
-Using PIP
-*********
-
-If available, the `pip <http://www.pip-installer.org/en/latest/index.html>`_
-installer is the preferred method for installing Python modules from `PyPI
-<http://pypi.python.org/pypi>`_, the Python Package Index::
-
-    $ sudo pip install wiring-x86
-
-Using Easy_Install
-******************
-
-If ``pip`` isn't available on your system then `easy_install
-<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ may be::
-
-    $ sudo easy_install wiring-x86
-
 Installing from a tarball
 *************************
 
-If you download a tarball of the latest version of wiring-x86 you can install
-it as follows (change the version number to suit)::
-
-    $ tar -zxvf wiring-x86-1.2.3.tar.gz
-
-    $ cd wiring-x86-1.2.3
-    $ sudo python setup.py install
-
+When using the original YOCTO Linux distribution provided with Intel®
+GalileoGen2 board this is the easiest method to get the module installed.
 A tarball of the latest code can be downloaded from GitHub as follows::
 
     $ curl -O -L http://github.com/emutex/wiring-x86/archive/master.tar.gz
+
+Install it as follows::
 
     $ tar zxvf master.tar.gz
     $ cd wiring-x86-master/
@@ -76,6 +55,22 @@ You can clone the repository and install from it as follows::
     $ cd wiring-x86
     $ sudo python setup.py install
 
+Using PIP
+*********
+
+If available on your system, use `pip
+<http://www.pip-installer.org/en/latest/index.html>`_ installer to get the
+package from `PyPI <http://pypi.python.org/pypi>`_, the Python Package Index::
+
+    $ sudo pip install wiring-x86
+
+Using Easy_Install
+******************
+
+If ``pip`` isn't available on your system then `easy_install
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ may be::
+
+    $ sudo easy_install wiring-x86
 
 Running a sample program
 ------------------------
