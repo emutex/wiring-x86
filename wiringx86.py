@@ -112,6 +112,25 @@ class GPIOBase(object):
             return
         self._write_value_to_handler(self.GPIO_MAPPING[pin], state)
 
+    def digitalRead(self, pin):
+        """Read GPIO pin's state.
+
+        The GPIO pin is assumed to be configured as INPUT
+
+        Args:
+            pin: Arduino pin number (0-19)
+
+        Returns:
+            Current value of the GPIO pin as an Integer
+
+        """
+        if pin not in self.GPIO_MAPPING:
+            return
+        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
+        state = handler.read()
+        handler.seek(0)
+        return int(state.strip())
+
     def _select_muxing(self, mode, pin):
         if mode == OUTPUT:
             return self.GPIO_MUX_OUTPUT[pin]
@@ -266,6 +285,10 @@ class GPIOGalileo(GPIOBase):
         18: ((21, HIGH), (29, HIGH)),
         19: ((20, HIGH), (29, HIGH)),
     }
+
+    GPIO_MUX_INPUT = GPIO_MUX_OUTPUT
+    GPIO_MUX_INPUT_PULLUP = GPIO_MUX_OUTPUT
+    GPIO_MUX_INPUT_PULLDOWN = GPIO_MUX_OUTPUT
 
     def __init__(self, debug=False):
         """Constructor
@@ -475,26 +498,6 @@ class GPIOGalileoGen2(GPIOBase):
         self.is_pwm_period_set = False
         self.exported_pwm = []
         self.enabled_pwm = {}
-
-
-    def digitalRead(self, pin):
-        """Read GPIO pin's state.
-
-        The GPIO pin is assumed to be configured as INPUT
-
-        Args:
-            pin: Arduino pin number (0-19)
-
-        Returns:
-            Current value of the GPIO pin as an Integer
-
-        """
-        if pin not in self.GPIO_MAPPING:
-            return
-        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
-        state = handler.read()
-        handler.seek(0)
-        return int(state.strip())
 
     def analogRead(self, pin):
         """Read analog input from the pin
