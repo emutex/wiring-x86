@@ -131,6 +131,29 @@ class GPIOBase(object):
         handler.seek(0)
         return int(state.strip())
 
+    def analogRead(self, pin):
+        """Read analog input from the pin
+
+        The GPIO pin is assumed to be configured as ANALOG_INPUT.
+        Returns values in range 0-1023
+
+        Args:
+            pin: Arduino analog pin number (14-19)
+
+        Returns:
+            Digital representation with 10 bits resolution (range 0-1023) of
+            voltage on the pin.
+
+        """
+        if pin not in self.ADC_MAPPING:
+            return
+        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
+        voltage = handler.read()
+        handler.seek(0)
+        # ADC chip on the board reports voltages with 12 bits resolution.
+        # To convert it to 10 bits just shift right 2 bits.
+        return int(voltage.strip()) >> 2
+
     def _select_muxing(self, mode, pin):
         if mode == OUTPUT:
             return self.GPIO_MUX_OUTPUT[pin]
@@ -263,6 +286,15 @@ class GPIOGalileo(GPIOBase):
         19: 49,
     }
 
+    ADC_MAPPING = {
+        14: 0,
+        15: 1,
+        16: 2,
+        17: 3,
+        18: 4,
+        19: 5,
+    }
+
     GPIO_MUX_OUTPUT = {
         0: ((40, HIGH), ),
         1: ((41, HIGH), ),
@@ -289,6 +321,15 @@ class GPIOGalileo(GPIOBase):
     GPIO_MUX_INPUT = GPIO_MUX_OUTPUT
     GPIO_MUX_INPUT_PULLUP = GPIO_MUX_OUTPUT
     GPIO_MUX_INPUT_PULLDOWN = GPIO_MUX_OUTPUT
+
+    GPIO_MUX_ANALOG_INPUT = {
+        14: ((37, LOW), ),
+        15: ((36, LOW), ),
+        16: ((23, LOW), ),
+        17: ((22, LOW), ),
+        18: ((21, LOW), (29, HIGH)),
+        19: ((20, LOW), (29, HIGH)),
+    }
 
     def __init__(self, debug=False):
         """Constructor
@@ -498,29 +539,6 @@ class GPIOGalileoGen2(GPIOBase):
         self.is_pwm_period_set = False
         self.exported_pwm = []
         self.enabled_pwm = {}
-
-    def analogRead(self, pin):
-        """Read analog input from the pin
-
-        The GPIO pin is assumed to be configured as ANALOG_INPUT.
-        Returns values in range 0-1023
-
-        Args:
-            pin: Arduino analog pin number (14-19)
-
-        Returns:
-            Digital representation with 10 bits resolution (range 0-1023) of
-            voltage on the pin.
-
-        """
-        if pin not in self.ADC_MAPPING:
-            return
-        handler = self.gpio_handlers[self.GPIO_MAPPING[pin]]
-        voltage = handler.read()
-        handler.seek(0)
-        # ADC chip on the board reports voltages with 12 bits resolution.
-        # To convert it to 10 bits just shift right 2 bits.
-        return int(voltage.strip()) >> 2
 
     def analogWrite(self, pin, value):
         """Write analog output (PWM)
