@@ -31,6 +31,19 @@ DRIVE_HIZ = 'hiz'
 
 class GPIOBase(object):
 
+    def __init__(self, debug=False):
+        """Constructor
+
+        Args:
+            debug: enables the debug mode showing the interaction with sysfs
+
+        """
+        self.debug = debug
+        self.pins_in_use = []
+        self.gpio_handlers = {}
+        self.exported_pwm = []
+        self.enabled_pwm = {}
+
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
 
@@ -53,11 +66,11 @@ class GPIOBase(object):
 
         """
         if pin not in self.GPIO_MAPPING:
-            return
+            return False
 
         mux = self._select_muxing(mode, pin)
         if mux is None:
-            return
+            return False
 
         linux_pin = self.GPIO_MAPPING[pin]
         self._export_pin(linux_pin)
@@ -90,13 +103,9 @@ class GPIOBase(object):
         elif mode in (INPUT, INPUT_PULLUP, INPUT_PULLDOWN):
             self._set_direction(linux_pin, INPUT)
         elif mode == PWM:
-            pwm = self.PWM_MAPPING[pin]
-            self._export_pwm(pwm)
-            self._set_pwm_duty_cycle(pwm, 0)
-            self.enabled_pwm[pwm] = False
-            if not self.is_pwm_period_set:
-                self._set_pwm_period(self.pwm_period)
-                self.is_pwm_period_set = True
+            self._init_pwm(pin)
+
+        return True
 
     def digitalWrite(self, pin, state):
         """Write a value to a GPIO pin.
@@ -131,6 +140,30 @@ class GPIOBase(object):
         handler.seek(0)
         return int(state.strip())
 
+    def analogWrite(self, pin, value):
+        """Write analog output (PWM)
+
+        The GPIO pin is assumed to be configured as PWM. Generates a PWM
+        signal with the desired duty cycle. The value must be in range 0-255.
+
+        Args:
+            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
+            value: the duty cycle: between 0 (always off) and 255 (always on)
+
+        """
+        if pin not in self.PWM_MAPPING:
+            return
+
+        if value < 0:
+            value = 0
+        elif value > 255:
+            value = 255
+
+        pwm = self.PWM_MAPPING[pin]
+        if not self.enabled_pwm.get(pwm, False):
+            self._enable_pwm(pwm)
+        self._set_pwm_duty_cycle(pwm, self._get_pwm_period(pin) * value / 255)
+
     def analogRead(self, pin):
         """Read analog input from the pin
 
@@ -153,6 +186,47 @@ class GPIOBase(object):
         # ADC chip on the board reports voltages with 12 bits resolution.
         # To convert it to 10 bits just shift right 2 bits.
         return int(voltage.strip()) >> 2
+
+    def setPWMPeriod(self, pin, period):
+        """Set the PWM period
+
+        Check if the period is valid for the current system and proceed to
+        set the new period.
+
+        Args:
+            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
+            period: period in nanoseconds
+
+        """
+        if period < self.PWM_MIN_PERIOD or period > self.PWM_MAX_PERIOD:
+            return
+
+        self._set_pwm_period(pin, period)
+
+    def cleanup(self):
+        """Do a general cleanup.
+
+        Close all open handlers for reading and writing.
+        Unexport all exported GPIO pins.
+        Unexport all exported PWM channels.
+
+        Calling this function is not mandatory but it's recommended once you
+        are done using the library if it's being used with a larger
+        application that runs for a long period of time.
+
+        """
+        for pin in self.pins_in_use:
+            self._unexport_pin(pin)
+        del self.pins_in_use[:]
+
+        for handler in self.gpio_handlers.values():
+            handler.close()
+        self.gpio_handlers.clear()
+
+        for pwm in self.exported_pwm:
+            self._unexport_pwm(pwm)
+        del self.exported_pwm[:]
+        self.enabled_pwm.clear()
 
     def _select_muxing(self, mode, pin):
         if mode == OUTPUT:
@@ -188,7 +262,7 @@ class GPIOBase(object):
         if state == LOW:
             value = 0
         cmd = 'echo %d > /sys/class/gpio/gpio%d/value' % (value, linux_pin)
-        self.__exec_cmd(self._write_value.__name__, cmd)
+        self._exec_cmd(self._write_value.__name__, cmd)
 
     def _write_value_to_handler(self, linux_pin, state):
         handler = self.gpio_handlers[linux_pin]
@@ -199,49 +273,45 @@ class GPIOBase(object):
     def _set_direction(self, linux_pin, direction):
         dirfile = '/sys/class/gpio/gpio%d/direction' % linux_pin
         cmd = 'test -f %s && echo %s > %s' % (dirfile, direction, dirfile)
-        self.__exec_cmd(self._set_direction.__name__, cmd)
+        self._exec_cmd(self._set_direction.__name__, cmd)
 
     def _export_pin(self, linux_pin):
         self.pins_in_use.append(linux_pin)
         cmd = 'echo %d > /sys/class/gpio/export 2>&1' % linux_pin
-        self.__exec_cmd(self._export_pin.__name__, cmd)
+        self._exec_cmd(self._export_pin.__name__, cmd)
 
     def _unexport_pin(self, linux_pin):
         cmd = 'echo %d > /sys/class/gpio/unexport 2>&1' % linux_pin
-        self.__exec_cmd(self._unexport_pin.__name__, cmd)
+        self._exec_cmd(self._unexport_pin.__name__, cmd)
 
     def _set_drive(self, linux_pin, drive):
         cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
-        self.__exec_cmd(self._set_drive.__name__, cmd)
+        self._exec_cmd(self._set_drive.__name__, cmd)
 
     def _export_pwm(self, channel):
         self.exported_pwm.append(channel)
         cmd = 'echo %d > /sys/class/pwm/pwmchip0/export 2>&1' % channel
-        self.__exec_cmd(self._export_pwm.__name__, cmd)
+        self._exec_cmd(self._export_pwm.__name__, cmd)
 
     def _unexport_pwm(self, channel):
         cmd = 'echo %d > /sys/class/pwm/pwmchip0/unexport 2>&1' % channel
-        self.__exec_cmd(self._unexport_pwm.__name__, cmd)
-
-    def _set_pwm_period(self, period):
-        cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
-        self.__exec_cmd(self._set_pwm_period.__name__, cmd)
+        self._exec_cmd(self._unexport_pwm.__name__, cmd)
 
     def _set_pwm_duty_cycle(self, channel, duty_cycle):
         cmd = 'echo %d > /sys/class/pwm/pwmchip0/pwm%d/duty_cycle' % (duty_cycle, channel)
-        self.__exec_cmd(self._set_pwm_duty_cycle.__name__, cmd)
+        self._exec_cmd(self._set_pwm_duty_cycle.__name__, cmd)
 
     def _enable_pwm(self, pwm):
         self.enabled_pwm[pwm] = True
         cmd = 'echo 1 > /sys/class/pwm/pwmchip0/pwm%d/enable' % pwm
-        self.__exec_cmd(self._enable_pwm.__name__, cmd)
+        self._exec_cmd(self._enable_pwm.__name__, cmd)
 
     def __debug(self, func_name, cmd):
         if self.debug:
             now = datetime.datetime.now().strftime("%B %d %I:%M:%S")
             print '{0} {1: <20}{2}'.format(now, func_name + ':', cmd)
 
-    def __exec_cmd(self, caller, command):
+    def _exec_cmd(self, caller, command):
         self.__debug(caller, command)
         os.system(command)
 
@@ -295,6 +365,15 @@ class GPIOGalileo(GPIOBase):
         19: 5,
     }
 
+    PWM_MAPPING = {
+        3: 3,
+        5: 5,
+        6: 6,
+        9: 1,
+        10: 7,
+        11: 4,
+    }
+
     GPIO_MUX_OUTPUT = {
         0: ((40, HIGH), ),
         1: ((41, HIGH), ),
@@ -331,36 +410,45 @@ class GPIOGalileo(GPIOBase):
         19: ((20, LOW), (29, HIGH)),
     }
 
-    def __init__(self, debug=False):
-        """Constructor
+    GPIO_MUX_PWM = {
+        3: ((30, HIGH), ),
+        5: (),
+        6: (),
+        9: (),
+        10: ((41, HIGH), ),
+        11: ((43, HIGH), ),
+    }
 
-        Args:
-            debug: enables the debug mode showing the interaction with sysfs
+    PWM_MIN_PERIOD = 62500
+    PWM_MAX_PERIOD = 7999999
+    PWM_DEFAULT_PERIOD = 5000000
 
-        """
-        self.debug = debug
-        self.pins_in_use = []
-        self.gpio_handlers = {}
+    def __init__(self, **kwargs):
+        super(GPIOGalileo, self).__init__(**kwargs)
+        self.pwm_periods = {}
+        for pwm in self.PWM_MAPPING.keys():
+            self.pwm_periods[pwm] = self.PWM_DEFAULT_PERIOD
 
-    def cleanup(self):
-        """Do a general cleanup.
+    def _set_pwm_period(self, pin, period):
+        channel = self.PWM_MAPPING[pin]
+        self.pwm_periods[pin] = period
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/pwm%d/period' % (period, channel)
+        self._exec_cmd(self._set_pwm_period.__name__, cmd)
 
-        Close all open handlers for reading and writing.
-        Unexport all exported GPIO pins.
-        Unexport all exported PWM channels.
+    def _get_pwm_period(self, pin):
+        return self.pwm_periods[pin]
 
-        Calling this function is not mandatory but it's recommended once you
-        are done using the library if it's being used with a larger
-        application that runs for a long period of time.
+    def _init_pwm(self, pin):
+        linux_pin = self.GPIO_MAPPING[pin]
+        self._set_drive(linux_pin, DRIVE_STRONG)
+        self._set_direction(linux_pin, OUTPUT)
+        self._write_value(linux_pin, HIGH)
 
-        """
-        for pin in self.pins_in_use:
-            self._unexport_pin(pin)
-        del self.pins_in_use[:]
-
-        for handler in self.gpio_handlers.values():
-            handler.close()
-        self.gpio_handlers.clear()
+        pwm = self.PWM_MAPPING[pin]
+        self._export_pwm(pwm)
+        self.enabled_pwm[pwm] = False
+        self._set_pwm_period(pin, self.pwm_periods[pin])
+        self._set_pwm_duty_cycle(pwm, 0)
 
 
 class GPIOGalileoGen2(GPIOBase):
@@ -525,84 +613,28 @@ class GPIOGalileoGen2(GPIOBase):
     PWM_MAX_PERIOD = 41666666
     PWM_DEFAULT_PERIOD = 5000000
 
-    def __init__(self, debug=False):
-        """Constructor
-
-        Args:
-            debug: enables the debug mode showing the interaction with sysfs
-
-        """
-        self.debug = debug
-        self.pins_in_use = []
-        self.gpio_handlers = {}
+    def __init__(self, **kwargs):
+        super(GPIOGalileoGen2, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
-        self.exported_pwm = []
-        self.enabled_pwm = {}
 
-    def analogWrite(self, pin, value):
-        """Write analog output (PWM)
-
-        The GPIO pin is assumed to be configured as PWM. Generates a PWM
-        signal with the desired duty cycle. The value must be in range 0-255.
-
-        Args:
-            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
-            value: the duty cycle: between 0 (always off) and 255 (always on)
-
-        """
-        if pin not in self.PWM_MAPPING:
-            return
-
-        if value < 0:
-            value = 0
-        elif value > 255:
-            value = 255
-
-        pwm = self.PWM_MAPPING[pin]
-        if not self.enabled_pwm.get(pwm, False):
-            self._enable_pwm(pwm)
-        self._set_pwm_duty_cycle(pwm, self.pwm_period * value / 255)
-
-    def setPWMPeriod(self, pin, period):
-        """Set the PWM period
-
-        On GalileoGen2 all PWM channels share the same period. When this is
+    def _set_pwm_period(self, pin, period):
+        """On GalileoGen2 all PWM channels share the same period. When this is
         set all the PWM outputs are disabled for at least 1ms while the chip
         reconfigures itself. The PWM pin is then ignored.
-
-        Args:
-            pin: Arduino PWM pin number (3, 5, 6, 9, 10, 11)
-            period: period in nanoseconds
-
         """
-        if period < self.PWM_MIN_PERIOD or period > self.PWM_MAX_PERIOD:
-            return
+        self.period = period
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
+        self._exec_cmd(self._set_pwm_period.__name__, cmd)
 
-        self.pwm_period = period
-        self._set_pwm_period(period)
+    def _get_pwm_period(self, pin):
+        return self.pwm_period
 
-    def cleanup(self):
-        """Do a general cleanup.
-
-        Close all open handlers for reading and writing.
-        Unexport all exported GPIO pins.
-        Unexport all exported PWM channels.
-
-        Calling this function is not mandatory but it's recommended once you
-        are done using the library if it's being used with a larger
-        application that runs for a long period of time.
-
-        """
-        for pin in self.pins_in_use:
-            self._unexport_pin(pin)
-        del self.pins_in_use[:]
-
-        for handler in self.gpio_handlers.values():
-            handler.close()
-        self.gpio_handlers.clear()
-
-        for pwm in self.exported_pwm:
-            self._unexport_pwm(pwm)
-        del self.exported_pwm[:]
-        self.enabled_pwm.clear()
+    def _init_pwm(self, pin):
+        pwm = self.PWM_MAPPING[pin]
+        self._export_pwm(pwm)
+        self._set_pwm_duty_cycle(pwm, 0)
+        self.enabled_pwm[pwm] = False
+        if not self.is_pwm_period_set:
+            self._set_pwm_period(pin, self.pwm_period)
+            self.is_pwm_period_set = True
