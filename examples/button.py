@@ -10,7 +10,10 @@
 #
 # This example is inspired on Arduino Button example.
 # http://arduino.cc/en/Tutorial/Button
-
+#
+# This example will work "out of the box" on an Intel® Galileo Gen2 board. If
+# you are using a different board such as an Intel® Galileo, just change the
+# import below. wiringx86 uses the same API for all the boards it supports.
 
 # Import the GPIOGalileoGen2 class from the wiringx86 module.
 from wiringx86 import GPIOGalileoGen2 as GPIO

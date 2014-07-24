@@ -10,7 +10,10 @@
 #
 # This example is inspired on Arduino Blink example.
 # http://arduino.cc/en/Tutorial/Blink
-
+#
+# This example will work "out of the box" on an Intel® Galileo Gen2 board. If
+# you are using a different board such as an Intel® Galileo, just change the
+# import below. wiringx86 uses the same API for all the boards it supports.
 
 # Import the time module enable sleeps between turning the led on and off.
 import time

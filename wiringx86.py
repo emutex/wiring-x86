@@ -48,8 +48,8 @@ class GPIOBase(object):
         """Set mode to GPIO pin`.
 
         This function must be called before doing any other operation on the
-        pin. It also sets up the muxing needed in Intel® Galileo Gen2 board
-        for the pin to behave as the user wants to.
+        pin. It also sets up the muxing needed in the board for the pin to
+        behave as the user wants to.
 
         Args:
             pin: Arduino pin number (0-19)
