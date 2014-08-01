@@ -2,16 +2,19 @@ Wiring-x86
 ==========
 
 Wiring-x86 is a Python module that lets you use Arduino like functionality on
-an `Intel® Galileo Gen2 board
-<http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_.
-It provides a simple API (similar to the WiringPi module) to talk to the GPIO
-pins on the board.
+Intel® Arduino capable boards such as:
+
+* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
+* `Intel® Galileo Gen2 <http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
+
+It provides a simple and unified API (similar to the WiringPi module) to talk
+to the GPIO pins on the board.
 
 .. image:: _images/galileo1.jpg
    :align: center
 
 
-At the momment the Wiring-x86 library provides support to:
+At the moment the Wiring-x86 library provides support to:
 
 *  Writing to a GPIO pin configured as output.
 *  Reading from a GPIO pin configured as high impedance input.
@@ -26,6 +29,8 @@ Here is a simple example::
     import time
 
     # Import the GPIOGalileoGen2 class from the wiringx86 module.
+    # In case you want to use a different board, simply the import right class
+    # below. The API is unified for all supported boards.
     from wiringx86 import GPIOGalileoGen2 as GPIO
 
     # Create a new instance of the GPIOGalileoGen2 class.
@@ -66,6 +71,6 @@ Contents:
    :maxdepth: 1
 
    getting_started.rst
-   galileo_gen2_api.rst
+   api_reference.rst
    examples.rst
    learn_more.rst

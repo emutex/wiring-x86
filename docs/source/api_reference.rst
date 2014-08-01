@@ -3,8 +3,14 @@
 The Wiring-x86 API
 ==================
 
-The ``GPIOGalileoGen2`` class is the main class exposed by the ``wiring-x86``
-module.
+The ``wiring-x86`` module provides an unified API for all the platforms it
+supports. In case of a platform-specific API was added it will be explicitly
+mentioned in the documentation. 
+
+Two classes are exposed my the module:
+
+* GPIOGalileo
+* GPIOGalileoGen2
 
 In future releases other Intel® Quark® class boards will be supported.
 

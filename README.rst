@@ -1,13 +1,19 @@
 Wiring-x86
 ==========
 
-Wiring-x86 is a Python module that lets you use Arduino like
-functionality on an Intel® Galileo Gen2 board. It provides a simple API
-(similar to the WiringPi module) to talk to the GPIO pins on the board.
+Wiring-x86 is a Python module that lets you use Arduino like functionality on
+Intel® Arduino capable boards such as:
+*  `Intel® Galileo
+<http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
+* `Intel® Galileo Gen2
+<http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
+
+It provides a simple and unified API (similar to the WiringPi module) to talk
+to the GPIO pins on the board.
 
 .. image:: https://raw.githubusercontent.com/emutex/wiring-x86/master/docs/source/_images/galileo1.jpg
 
-At the momment the Wiring-x86 library provides support to:
+At the moment the Wiring-x86 library provides support to:
 
 -  Writing to a GPIO pin configured as output.
 -  Reading from a GPIO pin configured as high impedance input.
@@ -24,6 +30,8 @@ Here is a simple example:
     import time
 
     # Import the GPIOGalileoGen2 class from the wiringx86 module.
+    # In case you want to use a different board, simply the import right class
+    # below. The API is unified for all supported boards.
     from wiringx86 import GPIOGalileoGen2 as GPIO
 
     # Create a new instance of the GPIOGalileoGen2 class.
@@ -61,10 +69,14 @@ Here is a simple example:
 Full documentation can be found at
 `wiring-x86 site <http://wiring-x86.readthedocs.org>`_ on Read the Docs.
 
-The Wiring-x86 module is meant to be used on Intel® Galileo Gen2
-platform with its original YOCTO Linux OS. For more information on the
-Intel® Galileo Gen2 board and how to get this software go to `Intel®
-Makers site <https://communities.intel.com/community/makers>`_. This
-module will only work with that combination of board and OS since it
-uses the Intel® Galileo Gen2 GPIO driver sysfs interface.
+The ``wiring-x86.py`` module supports these platforms:
+
+* Intel® Galileo
+* Intel® Galileo Gen2
+
+The original YOCTO Linux OS provided by Intel® must be used. For more
+information on how to get this software go to `Intel® Makers site
+<https://communities.intel.com/community/makers>`_. This module will only work
+with that combination of boards and OS since it uses specific Intel® GPIO
+driver sysfs interface.
 
