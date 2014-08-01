@@ -3,10 +3,9 @@ Wiring-x86
 
 Wiring-x86 is a Python module that lets you use Arduino like functionality on
 Intel® Arduino capable boards such as:
-*  `Intel® Galileo
-<http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
-* `Intel® Galileo Gen2
-<http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
+
+* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
+* `Intel® Galileo Gen2 <http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
 
 It provides a simple and unified API (similar to the WiringPi module) to talk
 to the GPIO pins on the board.
@@ -68,11 +67,6 @@ Here is a simple example:
 
 Full documentation can be found at
 `wiring-x86 site <http://wiring-x86.readthedocs.org>`_ on Read the Docs.
-
-The ``wiring-x86.py`` module supports these platforms:
-
-* Intel® Galileo
-* Intel® Galileo Gen2
 
 The original YOCTO Linux OS provided by Intel® must be used. For more
 information on how to get this software go to `Intel® Makers site
