@@ -623,7 +623,7 @@ class GPIOGalileoGen2(GPIOBase):
         set all the PWM outputs are disabled for at least 1ms while the chip
         reconfigures itself. The PWM pin is then ignored.
         """
-        self.period = period
+        self.pwm_period = period
         cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
         self._exec_cmd(self._set_pwm_period.__name__, cmd)
 
