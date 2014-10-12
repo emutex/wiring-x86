@@ -53,10 +53,12 @@ class GPIOBase(object):
         self.exported_pwm = []
         self.enabled_pwm = {}
 
-        if self.pinmux > 0:
+        if self.has_pinmux():
             self._export_pin(self.pinmux)
             self._set_direction(self.pinmux, self.HIGH)
 
+    def has_pinmux(self):
+        return hasattr(self, 'pinmux')
 
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
@@ -82,7 +84,7 @@ class GPIOBase(object):
         if pin not in self.GPIO_MAPPING:
             return False
 
-        if self.pinmux > 0:
+        if self.has_pinmux():
             self._set_direction(self.pinmux, self.LOW)
 
         mux = self._select_muxing(mode, pin)
@@ -112,9 +114,8 @@ class GPIOBase(object):
             elif value in (HIGH, LOW):
                 self._set_drive(vpin, DRIVE_STRONG)
                 self._write_value(vpin, value)
-            elif value in ALL_MODES:                           
-                 self._muxmode(vpin, value)
-
+            elif value in ALL_MODES:
+                self._muxmode(vpin, value)
 
         if mode == OUTPUT:
             self._set_direction(linux_pin, OUTPUT)
@@ -125,7 +126,7 @@ class GPIOBase(object):
         elif mode == PWM:
             self._init_pwm(pin)
 
-        if self.pinmux > 0:
+        if self.has_pinmux():
             self._set_direction(self.pinmux, self.HIGH)
 
         return True
@@ -295,7 +296,7 @@ class GPIOBase(object):
 
     def _set_direction(self, linux_pin, direction):
         dirfile = '/sys/class/gpio/gpio%d/direction' % linux_pin
-        cmd = 'test -f %s && echo %s > %s' % (dirfile, direction, dirfile)
+        cmd = 'test -f %s && echo %s > %s 2>&1' % (dirfile, direction, dirfile)
         self._exec_cmd(self._set_direction.__name__, cmd)
 
     def _export_pin(self, linux_pin):
@@ -307,13 +308,12 @@ class GPIOBase(object):
         cmd = 'echo %d > /sys/class/gpio/unexport 2>&1' % linux_pin
         self._exec_cmd(self._unexport_pin.__name__, cmd)
 
-    def _muxmode(self, linux_pin, mode):                                       
-        if self.pinmux > 0:
-            cmd = 'echo %s > /sys/kernel/debug/gpio_debug/gpio%d/current_pinmux' % (mode, linux_pin)
-            self._exec_cmd(self._muxmode.__name__, cmd)   
+    def _muxmode(self, linux_pin, mode):
+        cmd = 'echo %s > /sys/kernel/debug/gpio_debug/gpio%d/current_pinmux' % (mode, linux_pin)
+        self._exec_cmd(self._muxmode.__name__, cmd)
 
     def _set_drive(self, linux_pin, drive):
-        if self.pinmux == 0:
+        if not self.has_pinmux():
             cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
             self._exec_cmd(self._set_drive.__name__, cmd)
 
@@ -453,7 +453,6 @@ class GPIOGalileo(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
-        self.pinmux = 0
         super(GPIOGalileo, self).__init__(**kwargs)
         self.pwm_periods = {}
         for pwm in self.PWM_MAPPING.keys():
@@ -644,7 +643,6 @@ class GPIOGalileoGen2(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
-        self.pinmux = 0
         super(GPIOGalileoGen2, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
@@ -669,8 +667,6 @@ class GPIOGalileoGen2(GPIOBase):
         if not self.is_pwm_period_set:
             self._set_pwm_period(pin, self.pwm_period)
             self.is_pwm_period_set = True
-
-
 
 
 class GPIOEdison(GPIOBase):
@@ -814,7 +810,6 @@ class GPIOEdison(GPIOBase):
         19: ((165, MODE_0), (237, LOW), (213, LOW), (205, LOW)),
     }
 
-
     GPIO_MUX_ANALOG_INPUT = {
         14: (( 44, MODE_0), (48, NONE), (49, NONE)),
         15: (( 45, MODE_0), (50, NONE), (51, NONE)),
@@ -845,7 +840,7 @@ class GPIOEdison(GPIOBase):
         self.is_pwm_period_set = False
 
     def _set_pwm_period(self, pin, period):
-        """ TODO Do PWM functionality. Not the same as Galileo. 
+        """ TODO Do PWM functionality. Not the same as Galileo.
         """
         self.pwm_period = period
         cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
@@ -862,4 +857,3 @@ class GPIOEdison(GPIOBase):
         if not self.is_pwm_period_set:
             self._set_pwm_period(pin, self.pwm_period)
             self.is_pwm_period_set = True
-
