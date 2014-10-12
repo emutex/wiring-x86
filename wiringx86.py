@@ -10,8 +10,10 @@
 # See license in LICENSE.txt file.
 #
 # Wiring-x86 is a Python module that lets you use Arduino like functionality
-# on an Intel® Galileo Gen2 board.
-
+# on
+#  Intel® Gaileo
+#  Intel® Gaileo Gen2
+#  Intel® Edison
 
 import datetime
 import os
@@ -27,6 +29,13 @@ HIGH = 'high'
 NONE = 'in'
 DRIVE_STRONG = 'strong'
 DRIVE_HIZ = 'hiz'
+MODE_0 = 'mode0'
+MODE_1 = 'mode1'
+MODE_2 = 'mode2'
+MODE_3 = 'mode3'
+MODE_4 = 'mode4'
+MODE_5 = 'mode5'
+ALL_MODES = (MODE_0, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5)
 
 
 class GPIOBase(object):
@@ -43,6 +52,11 @@ class GPIOBase(object):
         self.gpio_handlers = {}
         self.exported_pwm = []
         self.enabled_pwm = {}
+
+        if self.pinmux > 0:
+            self._export_pin(self.pinmux)
+            self._set_direction(self.pinmux, self.HIGH)
+
 
     def pinMode(self, pin, mode):
         """Set mode to GPIO pin`.
@@ -67,6 +81,9 @@ class GPIOBase(object):
         """
         if pin not in self.GPIO_MAPPING:
             return False
+
+        if self.pinmux > 0:
+            self._set_direction(self.pinmux, self.LOW)
 
         mux = self._select_muxing(mode, pin)
         if mux is None:
@@ -95,6 +112,9 @@ class GPIOBase(object):
             elif value in (HIGH, LOW):
                 self._set_drive(vpin, DRIVE_STRONG)
                 self._write_value(vpin, value)
+            elif value in ALL_MODES:                           
+                 self._muxmode(vpin, value)
+
 
         if mode == OUTPUT:
             self._set_direction(linux_pin, OUTPUT)
@@ -104,6 +124,9 @@ class GPIOBase(object):
             self._set_direction(linux_pin, INPUT)
         elif mode == PWM:
             self._init_pwm(pin)
+
+        if self.pinmux > 0:
+            self._set_direction(self.pinmux, self.HIGH)
 
         return True
 
@@ -284,9 +307,15 @@ class GPIOBase(object):
         cmd = 'echo %d > /sys/class/gpio/unexport 2>&1' % linux_pin
         self._exec_cmd(self._unexport_pin.__name__, cmd)
 
+    def _muxmode(self, linux_pin, mode):                                       
+        if self.pinmux > 0:
+            cmd = 'echo %s > /sys/kernel/debug/gpio_debug/gpio%d/current_pinmux' % (mode, linux_pin)
+            self._exec_cmd(self._muxmode.__name__, cmd)   
+
     def _set_drive(self, linux_pin, drive):
-        cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
-        self._exec_cmd(self._set_drive.__name__, cmd)
+        if self.pinmux == 0:
+            cmd = 'echo %s > /sys/class/gpio/gpio%d/drive > /dev/null' % (drive, linux_pin)
+            self._exec_cmd(self._set_drive.__name__, cmd)
 
     def _export_pwm(self, channel):
         self.exported_pwm.append(channel)
@@ -424,6 +453,7 @@ class GPIOGalileo(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
+        self.pinmux = 0
         super(GPIOGalileo, self).__init__(**kwargs)
         self.pwm_periods = {}
         for pwm in self.PWM_MAPPING.keys():
@@ -614,6 +644,7 @@ class GPIOGalileoGen2(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
+        self.pinmux = 0
         super(GPIOGalileoGen2, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
@@ -638,3 +669,197 @@ class GPIOGalileoGen2(GPIOBase):
         if not self.is_pwm_period_set:
             self._set_pwm_period(pin, self.pwm_period)
             self.is_pwm_period_set = True
+
+
+
+
+class GPIOEdison(GPIOBase):
+
+    """Class for managing GPIO pinout on Intel®Edison board
+
+    See docs/ directory for more information.
+    """
+
+    GPIO_MAPPING = {                                                            
+        0: 130,                                                                 
+        1: 131,                                                                 
+        2: 128,                                                                 
+        3:  12,                                                                 
+        4: 129,                                                                 
+        5:  13,                                                                 
+        6: 182,                                                                 
+        7:  48,                                                                 
+        8:  49,                                                                 
+        9: 183,                                                                 
+       10:  41,                                                                 
+       11:  43,                                                                 
+       12:  42,                                                                 
+       13:  40,                                                                 
+       14:  44,                                                                 
+       15:  45,                                                                 
+       16:  46,                                                                 
+       17:  47,                                                                 
+       18:  14,                                                                 
+       19: 165,                                                                 
+    } 
+
+
+    ADC_MAPPING = {
+        14: 0,
+        15: 1,
+        16: 2,
+        17: 3,
+        18: 4,
+        19: 5,
+    }
+
+    PWM_MAPPING = {
+        3: 1,
+        5: 3,
+        6: 5,
+        9: 7,
+        10: 11,
+        11: 9,
+    }
+
+    GPIO_MUX_OUTPUT = {
+        0:  ((130, MODE_0), (248, HIGH), (216, HIGH)),
+        1:  ((131, MODE_0), (249, HIGH), (217, HIGH)),
+        2:  ((128, MODE_0), (250, HIGH), (218, HIGH)),
+        3:  (( 12, MODE_0), (251, HIGH), (219, HIGH)),
+        4:  ((129, MODE_0), (252, HIGH), (220, HIGH)),
+        5:  (( 13, MODE_0), (253, HIGH), (221, HIGH)),
+        6:  ((182, MODE_0), (254, HIGH), (222, HIGH)),
+        7:  (( 48, MODE_0), (255, HIGH), (223, HIGH)),
+        8:  (( 49, MODE_0), (256, HIGH), (224, HIGH)),
+        9:  ((183, MODE_0), (257, HIGH), (225, HIGH)),
+        10: (( 41, MODE_0), (258, HIGH), (226, HIGH), (240, LOW), (263, HIGH)),
+        11: (( 43, MODE_0), (259, HIGH), (227, HIGH), (241, LOW), (262, HIGH)),
+        12: (( 42, MODE_0), (260, HIGH), (228, HIGH), (242, LOW)),
+        13: (( 40, MODE_0), (261, HIGH), (229, HIGH), (243, LOW)),
+        14: (( 44, MODE_0), (232, HIGH), (208, HIGH), (200, LOW)),
+        15: (( 45, MODE_0), (233, HIGH), (209, HIGH), (201, LOW)),
+        16: (( 46, MODE_0), (234, HIGH), (210, HIGH), (202, LOW)),
+        17: (( 47, MODE_0), (235, HIGH), (211, HIGH), (203, LOW)),
+        18: (( 14, MODE_0), (236, HIGH), (212, HIGH), (204, LOW)),
+        19: ((165, MODE_0), (237, HIGH), (213, HIGH), (205, LOW)),
+    }
+
+    GPIO_MUX_INPUT = {
+        0:  ((130, MODE_0), (248, LOW), (216, NONE)),
+        1:  ((131, MODE_0), (249, LOW), (217, NONE)),
+        2:  ((128, MODE_0), (250, LOW), (218, NONE)),
+        3:  (( 12, MODE_0), (251, LOW), (219, NONE)),
+        4:  ((129, MODE_0), (252, LOW), (220, NONE)),
+        5:  (( 13, MODE_0), (253, LOW), (221, NONE)),
+        6:  ((182, MODE_0), (254, LOW), (222, NONE)),
+        7:  (( 48, MODE_0), (255, LOW), (223, NONE)),
+        8:  (( 49, MODE_0), (256, LOW), (224, NONE)),
+        9:  ((183, MODE_0), (257, LOW), (225, NONE)),
+        10: (( 41, MODE_0), (258, LOW), (226, NONE), (240, LOW), (263, HIGH)),
+        11: (( 43, MODE_0), (259, LOW), (227, NONE), (241, LOW), (262, HIGH)),
+        12: (( 42, MODE_0), (260, LOW), (228, NONE), (242, LOW)),
+        13: (( 40, MODE_0), (261, LOW), (229, NONE), (243, LOW)),
+        14: (( 44, MODE_0), (232, LOW), (208, NONE), (200, LOW)),
+        15: (( 45, MODE_0), (233, LOW), (209, NONE), (201, LOW)),
+        16: (( 46, MODE_0), (234, LOW), (210, NONE), (202, LOW)),
+        17: (( 47, MODE_0), (235, LOW), (211, NONE), (203, LOW)),
+        18: (( 14, MODE_0), (236, LOW), (212, NONE), (204, LOW)),
+        19: ((165, MODE_0), (237, LOW), (213, NONE), (205, LOW)),
+    }
+
+    GPIO_MUX_INPUT_PULLUP = {
+        0:  ((130, MODE_0), (248, LOW), (216, HIGH)),
+        1:  ((131, MODE_0), (249, LOW), (217, HIGH)),
+        2:  ((128, MODE_0), (250, LOW), (218, HIGH)),
+        3:  (( 12, MODE_0), (251, LOW), (219, HIGH)),
+        4:  ((129, MODE_0), (252, LOW), (220, HIGH)),
+        5:  (( 13, MODE_0), (253, LOW), (221, HIGH)),
+        6:  ((182, MODE_0), (254, LOW), (222, HIGH)),
+        7:  (( 48, MODE_0), (255, LOW), (223, HIGH)),
+        8:  (( 49, MODE_0), (256, LOW), (224, HIGH)),
+        9:  ((183, MODE_0), (257, LOW), (225, HIGH)),
+        10: (( 41, MODE_0), (258, LOW), (226, HIGH), (240, LOW), (263, HIGH)),
+        11: (( 43, MODE_0), (259, LOW), (227, HIGH), (241, LOW), (262, HIGH)),
+        12: (( 42, MODE_0), (260, LOW), (228, HIGH), (242, LOW)),
+        13: (( 40, MODE_0), (261, LOW), (229, HIGH), (243, LOW)),
+        14: (( 44, MODE_0), (232, LOW), (208, HIGH), (200, LOW)),
+        15: (( 45, MODE_0), (233, LOW), (209, HIGH), (201, LOW)),
+        16: (( 46, MODE_0), (234, LOW), (210, HIGH), (202, LOW)),
+        17: (( 47, MODE_0), (235, LOW), (211, HIGH), (203, LOW)),
+        18: (( 14, MODE_0), (236, LOW), (212, HIGH), (204, LOW)),
+        19: ((165, MODE_0), (237, LOW), (213, HIGH), (205, LOW)),
+    }
+
+    GPIO_MUX_INPUT_PULLDOWN = {
+        0:  ((130, MODE_0), (248, LOW), (216, LOW)),
+        1:  ((131, MODE_0), (249, LOW), (217, LOW)),
+        2:  ((128, MODE_0), (250, LOW), (218, LOW)),
+        3:  (( 12, MODE_0), (251, LOW), (219, LOW)),
+        4:  ((129, MODE_0), (252, LOW), (220, LOW)),
+        5:  (( 13, MODE_0), (253, LOW), (221, LOW)),
+        6:  ((182, MODE_0), (254, LOW), (222, LOW)),
+        7:  (( 48, MODE_0), (255, LOW), (223, LOW)),
+        8:  (( 49, MODE_0), (256, LOW), (224, LOW)),
+        9:  ((183, MODE_0), (257, LOW), (225, LOW)),
+        10: (( 41, MODE_0), (258, LOW), (226, LOW), (240, LOW), (263, HIGH)),
+        11: (( 43, MODE_0), (259, LOW), (227, LOW), (241, LOW), (262, HIGH)),
+        12: (( 42, MODE_0), (260, LOW), (228, LOW), (242, LOW)),
+        13: (( 40, MODE_0), (261, LOW), (229, LOW), (243, LOW)),
+        14: (( 44, MODE_0), (232, LOW), (208, LOW), (200, LOW)),
+        15: (( 45, MODE_0), (233, LOW), (209, LOW), (201, LOW)),
+        16: (( 46, MODE_0), (234, LOW), (210, LOW), (202, LOW)),
+        17: (( 47, MODE_0), (235, LOW), (211, LOW), (203, LOW)),
+        18: (( 14, MODE_0), (236, LOW), (212, LOW), (204, LOW)),
+        19: ((165, MODE_0), (237, LOW), (213, LOW), (205, LOW)),
+    }
+
+
+    GPIO_MUX_ANALOG_INPUT = {
+        14: (( 44, MODE_0), (48, NONE), (49, NONE)),
+        15: (( 45, MODE_0), (50, NONE), (51, NONE)),
+        16: (( 46, MODE_0), (52, NONE), (53, NONE)),
+        17: (( 47, MODE_0), (54, NONE), (55, NONE)),
+        18: (( 14, MODE_0), (78, LOW), (60, HIGH), (56, NONE), (57, NONE)),
+        19: ((165, MODE_0), (79, LOW), (60, HIGH), (58, NONE), (59, NONE)),
+    }
+
+    GPIO_MUX_PWM = {
+        3:  (( 12, MODE_1), (64, HIGH), (76, LOW), (16, LOW), (17, NONE), (62, NONE)),
+        5:  (( 13, MODE_1), (66, HIGH), (18, LOW), (19, NONE)),
+        6:  ((182, MODE_1), (68, HIGH), (20, LOW), (21, NONE)),
+        9:  ((183, MODE_1), (70, HIGH), (22, LOW), (23, NONE)),
+        10: (( 41, MODE_1), (74, HIGH), (26, LOW), (27, NONE)),
+        11: (( 43, MODE_1), (72, HIGH), (24, LOW), (25, NONE)),
+    }
+
+    PWM_MIN_PERIOD = 666666
+    PWM_MAX_PERIOD = 41666666
+    PWM_DEFAULT_PERIOD = 5000000
+
+    def __init__(self, **kwargs):
+        
+        self.pinmux=214
+        super(GPIOEdison, self).__init__(**kwargs)
+        self.pwm_period = self.PWM_DEFAULT_PERIOD
+        self.is_pwm_period_set = False
+
+    def _set_pwm_period(self, pin, period):
+        """ TODO Do PWM functionality. Not the same as Galileo. 
+        """
+        self.pwm_period = period
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
+        self._exec_cmd(self._set_pwm_period.__name__, cmd)
+
+    def _get_pwm_period(self, pin):
+        return self.pwm_period
+
+    def _init_pwm(self, pin):
+        pwm = self.PWM_MAPPING[pin]
+        self._export_pwm(pwm)
+        self._set_pwm_duty_cycle(pwm, 0)
+        self.enabled_pwm[pwm] = False
+        if not self.is_pwm_period_set:
+            self._set_pwm_period(pin, self.pwm_period)
+            self.is_pwm_period_set = True
+
