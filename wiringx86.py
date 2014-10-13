@@ -699,7 +699,6 @@ class GPIOEdison(GPIOBase):
        19: 165,                                                                 
     } 
 
-
     ADC_MAPPING = {
         14: 0,
         15: 1,
@@ -812,12 +811,12 @@ class GPIOEdison(GPIOBase):
     }
 
     GPIO_MUX_ANALOG_INPUT = {
-        14: (( 44, MODE_0), (48, NONE), (49, NONE)),
-        15: (( 45, MODE_0), (50, NONE), (51, NONE)),
-        16: (( 46, MODE_0), (52, NONE), (53, NONE)),
-        17: (( 47, MODE_0), (54, NONE), (55, NONE)),
-        18: (( 14, MODE_0), (78, LOW), (60, HIGH), (56, NONE), (57, NONE)),
-        19: ((165, MODE_0), (79, LOW), (60, HIGH), (58, NONE), (59, NONE)),
+        14: (( 44, MODE_0), (200, HIGH), (232, LOW), (208, NONE)),
+        15: (( 45, MODE_0), (201, HIGH), (233, LOW), (209, NONE)),
+        16: (( 46, MODE_0), (202, HIGH), (234, LOW), (210, NONE)),
+        17: (( 47, MODE_0), (203, HIGH), (235, LOW), (211, NONE)),
+        18: (( 14, MODE_0), (204, HIGH), (236, LOW), (212, NONE)),
+        19: ((165, MODE_0), (205, HIGH), (237, LOW), (213, NONE)),
     }
 
     GPIO_MUX_PWM = {
