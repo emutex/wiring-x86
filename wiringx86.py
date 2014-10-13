@@ -710,12 +710,13 @@ class GPIOEdison(GPIOBase):
     }
 
     PWM_MAPPING = {
-        3: 1,
-        5: 3,
-        6: 5,
-        9: 7,
-        10: 11,
-        11: 9,
+        3: 0,
+        5: 1,
+        6: 2,
+        9: 3,
+        # TODO: enable swizzler
+        10: None,
+        11: None,
     }
 
     GPIO_MUX_OUTPUT = {
@@ -820,40 +821,37 @@ class GPIOEdison(GPIOBase):
     }
 
     GPIO_MUX_PWM = {
-        3:  (( 12, MODE_1), (64, HIGH), (76, LOW), (16, LOW), (17, NONE), (62, NONE)),
-        5:  (( 13, MODE_1), (66, HIGH), (18, LOW), (19, NONE)),
-        6:  ((182, MODE_1), (68, HIGH), (20, LOW), (21, NONE)),
-        9:  ((183, MODE_1), (70, HIGH), (22, LOW), (23, NONE)),
-        10: (( 41, MODE_1), (74, HIGH), (26, LOW), (27, NONE)),
-        11: (( 43, MODE_1), (72, HIGH), (24, LOW), (25, NONE)),
+        3:  (( 12, MODE_1), (251, HIGH), (219, NONE)),
+        5:  (( 13, MODE_1), (253, HIGH), (221, NONE)),
+        6:  ((182, MODE_1), (254, HIGH), (222, NONE)),
+        9:  ((183, MODE_1), (257, HIGH), (225, NONE)),
+        10: (( 41, MODE_1), (258, HIGH), (226, NONE), (240, LOW), (263, HIGH)),
+        11: (( 43, MODE_1), (259, HIGH), (227, NONE), (241, LOW), (262, HIGH)),
     }
 
-    PWM_MIN_PERIOD = 666666
-    PWM_MAX_PERIOD = 41666666
-    PWM_DEFAULT_PERIOD = 5000000
+    PWM_MIN_PERIOD = 104
+    PWM_MAX_PERIOD = 218453000
+    PWM_DEFAULT_PERIOD = 2048000
 
     def __init__(self, **kwargs):
-        
-        self.pinmux=214
+        self.pinmux = 214
         super(GPIOEdison, self).__init__(**kwargs)
-        self.pwm_period = self.PWM_DEFAULT_PERIOD
-        self.is_pwm_period_set = False
+        self.pwm_periods = {}
+        for pin in self.PWM_MAPPING.keys():
+            self.pwm_periods[pin] = self.PWM_DEFAULT_PERIOD
 
     def _set_pwm_period(self, pin, period):
-        """ TODO Do PWM functionality. Not the same as Galileo.
-        """
-        self.pwm_period = period
-        cmd = 'echo %d > /sys/class/pwm/pwmchip0/device/pwm_period' % period
+        self.pwm_periods[pin] = period
+        channel = self.PWM_MAPPING[pin]
+        cmd = 'echo %d > /sys/class/pwm/pwmchip0/pwm%d/period' % (period, channel)
         self._exec_cmd(self._set_pwm_period.__name__, cmd)
 
     def _get_pwm_period(self, pin):
-        return self.pwm_period
+        return self.pwm_periods[pin]
 
     def _init_pwm(self, pin):
         pwm = self.PWM_MAPPING[pin]
         self._export_pwm(pwm)
+        self._set_pwm_period(pin, self.pwm_periods[pin])
         self._set_pwm_duty_cycle(pwm, 0)
-        self.enabled_pwm[pwm] = False
-        if not self.is_pwm_period_set:
-            self._set_pwm_period(pin, self.pwm_period)
-            self.is_pwm_period_set = True
+        self._enable_pwm(pwm)
