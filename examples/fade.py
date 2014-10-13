@@ -11,17 +11,17 @@
 # This example is inspired on Arduino Fade example.
 # http://arduino.cc/en/Tutorial/Fade
 #
-# This example will work "out of the box" on an Intel® Galileo Gen2 board. If
-# you are using a different board such as an Intel® Galileo, just change the
+# This example will work "out of the box" on an Intel® Edison board. If
+# you are using a different board such as an Intel® Galileo Gen2, just change the
 # import below. wiringx86 uses the same API for all the boards it supports.
 
 # Import the time module enable sleeps between turning the led on and off.
 import time
 
-# Import the GPIOGalileoGen2 class from the wiringx86 module.
-from wiringx86 import GPIOGalileoGen2 as GPIO
+# Import the GPIOEdison class from the wiringx86 module.
+from wiringx86 import GPIOEdison as GPIO
 
-# Create a new instance of the GPIOGalileoGen2 class.
+# Create a new instance of the GPIOEdison class.
 # Setting debug=True gives information about the interaction with sysfs.
 gpio = GPIO(debug=False)
 pin = 3

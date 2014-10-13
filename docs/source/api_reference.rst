@@ -9,14 +9,13 @@ mentioned in the documentation.
 
 Two classes are exposed my the module:
 
-* GPIOGalileo
-* GPIOGalileoGen2
-
-In future releases other Intel® Quark® class boards will be supported.
+* ``GPIOEdison``
+* ``GPIOGalileoGen2``
+* ``GPIOGalileo``
 
 The module is generally imported and intialised as follows::
 
-    from wiringx86 import GPIOGalileoGen2 as GPIO
+    from wiringx86 import GPIOEdison as GPIO
 
     gpio = GPIO()
 
@@ -35,7 +34,7 @@ Constructor
 
 The ``GPIO()`` constructor is used to create a new gpio object::
 
-   from wiringx86 import GPIOGalileoGen2 as GPIO
+   from wiringx86 import GPIOEdison as GPIO
 
    gpio = GPIO()
 

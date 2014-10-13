@@ -12,8 +12,9 @@ Prerequisites
 
 The ``wiring-x86.py`` module supports these platforms:
 
-* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
+* `Intel® Edison <http://www.intel.com/content/www/us/en/do-it-yourself/edison.html>`_
 * `Intel® Galileo Gen2 <http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
+* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
 
 The original YOCTO Linux OS provided by Intel® must be used. For more
 information on how to get this software go to `Intel® Makers site

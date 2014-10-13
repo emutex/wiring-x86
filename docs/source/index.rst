@@ -4,8 +4,9 @@ Wiring-x86
 Wiring-x86 is a Python module that lets you use Arduino like functionality on
 Intel® Arduino capable boards such as:
 
-* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
+* `Intel® Edison <http://www.intel.com/content/www/us/en/do-it-yourself/edison.html>`_
 * `Intel® Galileo Gen2 <http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html>`_ 
+* `Intel® Galileo <http://www.intel.ie/content/www/ie/en/do-it-yourself/galileo-maker-quark-board.html>`_
 
 It provides a simple and unified API (similar to the WiringPi module) to talk
 to the GPIO pins on the board.
@@ -28,12 +29,12 @@ Here is a simple example::
     # Import the time module enable sleeps between turning the led on and off.
     import time
 
-    # Import the GPIOGalileoGen2 class from the wiringx86 module.
+    # Import the GPIOEdison class from the wiringx86 module.
     # In case you want to use a different board, simply the import right class
     # below. The API is unified for all supported boards.
-    from wiringx86 import GPIOGalileoGen2 as GPIO
+    from wiringx86 import GPIOEdison as GPIO
 
-    # Create a new instance of the GPIOGalileoGen2 class.
+    # Create a new instance of the GPIOEdison class.
     # Setting debug=True gives information about the interaction with sysfs.
     gpio = GPIO(debug=False)
     pin = 13
