@@ -272,14 +272,14 @@ class GPIOBase(object):
             f = open('/sys/class/gpio/gpio%d/value' % linux_pin, 'r+')
             self.gpio_handlers[linux_pin] = f
         except:
-            print "Failed opening value file for pin %d" % linux_pin
+            print "Failed opening digital value file for pin %d" % linux_pin
 
     def _open_analog_handler(self, linux_pin, adc):
         try:
-            f = open('/sys/bus/iio/devices/iio:device0/in_voltage%d_raw' % adc, 'r+')
+            f = open('/sys/bus/iio/devices/iio:device%d/in_voltage%d_raw' % (self.adc_iio_device, adc), 'r+')
             self.gpio_handlers[linux_pin] = f
         except:
-            print "Failed opening value file for pin %d" % linux_pin
+            print "Failed opening analog value file for pin %d" % linux_pin
 
     def _write_value(self, linux_pin, state):
         value = 1
@@ -453,6 +453,7 @@ class GPIOGalileo(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
+        self.adc_iio_device = 0
         super(GPIOGalileo, self).__init__(**kwargs)
         self.pwm_periods = {}
         for pwm in self.PWM_MAPPING.keys():
@@ -643,6 +644,7 @@ class GPIOGalileoGen2(GPIOBase):
     PWM_DEFAULT_PERIOD = 5000000
 
     def __init__(self, **kwargs):
+        self.adc_iio_device = 0
         super(GPIOGalileoGen2, self).__init__(**kwargs)
         self.pwm_period = self.PWM_DEFAULT_PERIOD
         self.is_pwm_period_set = False
@@ -834,10 +836,14 @@ class GPIOEdison(GPIOBase):
 
     def __init__(self, **kwargs):
         self.pinmux = 214
+        self.adc_iio_device = 1
         super(GPIOEdison, self).__init__(**kwargs)
         self.pwm_periods = {}
         for pin in self.PWM_MAPPING.keys():
             self.pwm_periods[pin] = self.PWM_DEFAULT_PERIOD
+        # Set all pins into a safe state at startup.
+        for i in range(0,20):
+	    self.pinMode(i, INPUT)
 
     def _set_pwm_period(self, pin, period):
         self.pwm_periods[pin] = period
