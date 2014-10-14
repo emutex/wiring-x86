@@ -13,7 +13,7 @@ from distutils.core import setup
 
 setup(
     name='Wiring-x86',
-    version='0.0.2',
+    version='1.0.0',
     author='Nicolás Pernas Maradei',
     author_email='nicolas.pernas.maradei@emutex.com',
     url='https://github.com/emutex/wiring-x86',

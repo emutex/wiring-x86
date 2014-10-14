@@ -262,7 +262,7 @@ class GPIOBase(object):
         elif mode == INPUT_PULLDOWN:
             return self.GPIO_MUX_INPUT_PULLDOWN[pin]
         elif mode == ANALOG_INPUT and pin in self.ADC_MAPPING:
-                return self.GPIO_MUX_ANALOG_INPUT[pin]
+            return self.GPIO_MUX_ANALOG_INPUT[pin]
         elif mode == PWM and pin in self.PWM_MAPPING:
             return self.GPIO_MUX_PWM[pin]
         return None
@@ -842,8 +842,8 @@ class GPIOEdison(GPIOBase):
         for pin in self.PWM_MAPPING.keys():
             self.pwm_periods[pin] = self.PWM_DEFAULT_PERIOD
         # Set all pins into a safe state at startup.
-        for i in range(0,20):
-	    self.pinMode(i, INPUT)
+        for i in range(0, 20):
+            self.pinMode(i, INPUT)
 
     def _set_pwm_period(self, pin, period):
         self.pwm_periods[pin] = period
